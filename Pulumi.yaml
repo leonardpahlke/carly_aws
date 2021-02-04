@@ -1,0 +1,3 @@
+name: carly_aws
+runtime: go
+description: CARLY AWS Infrastructure IN GO
