@@ -50,7 +50,7 @@ func CreateAPI(ctx *pulumi.Context, _ ApiConfig) (ApiContext, error) {
 	})
 
 	// SPIDER-ML
-	lambdaFunction, err := pkg.BuildLambdaFunction(role, logPolicy, "handler")
+	lambdaFunction, err := pkg.BuildLambdaFunction(ctx, role, logPolicy, "handler")
 	if err != nil {
 		return ApiContext{}, err
 	}

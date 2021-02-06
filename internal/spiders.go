@@ -47,13 +47,13 @@ func CreateSpiders(ctx *pulumi.Context, _ SpidersConfig) (SpidersData, error) {
 	})
 
 	// SPIDER-ML
-	lambdaSpiderMl, err := pkg.BuildLambdaFunction(role, logPolicy, LambdaSpiderMlFolderName)
+	lambdaSpiderMl, err := pkg.BuildLambdaFunction(ctx, role, logPolicy, LambdaSpiderMlFolderName)
 	if err != nil {
 		return SpidersData{}, err
 	}
 
 	// SPIDER-PARSER
-	lambdaSpiderParser, err := pkg.BuildLambdaFunction(role, logPolicy, LambdaSpiderParserFolderName)
+	lambdaSpiderParser, err := pkg.BuildLambdaFunction(ctx, role, logPolicy, LambdaSpiderParserFolderName)
 	if err != nil {
 		return SpidersData{}, err
 	}
