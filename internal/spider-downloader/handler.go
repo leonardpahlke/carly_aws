@@ -1,10 +1,9 @@
-package spider_parser
+package spider_downloader
 
 import (
-	"strings"
-
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
+"github.com/aws/aws-lambda-go/events"
+"github.com/aws/aws-lambda-go/lambda"
+"strings"
 )
 
 // handler is a simple function that takes a string and does a ToUpper.
@@ -18,3 +17,4 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 func main() {
 	lambda.Start(handler)
 }
+

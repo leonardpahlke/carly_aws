@@ -45,7 +45,7 @@ func BuildLambdaFunction(ctx *pulumi.Context, role *iam.Role, logPolicy *iam.Rol
 		Handler: pulumi.String(lambdaHandlerFileName),
 		Role:    role.Arn,
 		Runtime: pulumi.String("go1.x"),
-		Code:    pulumi.NewFileArchive(fmt.Sprintf("../internal/%s/%s.zip", handlerFolder, lambdaHandlerFileName)),
+		Code:    pulumi.NewFileArchive(fmt.Sprintf("./build/%s/%s.zip", handlerFolder, lambdaHandlerFileName)),
 	}
 
 	// Create the lambda using the args.

@@ -2,13 +2,16 @@ package internal
 
 import (
 	"carly_aws/pkg"
+	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/dynamodb"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/lambda"
+	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/s3"
 	"github.com/pulumi/pulumi/sdk/v2/go/pulumi"
 )
 
 const LambdaSpiderMlFolderName = "spider-ml"
-const LambdaSpiderParserFolderName = "spider-parser"
+const LambdaSpiderTazParserFolderName = "spider-taz-parser"
+const LambdaSpiderDownloaderFolderName = "spider-downloader"
 
 func CreateSpiders(ctx *pulumi.Context, _ SpidersConfig) (SpidersData, error) {
 	// Create an IAM role.
@@ -53,23 +56,32 @@ func CreateSpiders(ctx *pulumi.Context, _ SpidersConfig) (SpidersData, error) {
 	}
 
 	// SPIDER-PARSER
-	lambdaSpiderParser, err := pkg.BuildLambdaFunction(ctx, role, logPolicy, LambdaSpiderParserFolderName)
+	lambdaSpiderParser, err := pkg.BuildLambdaFunction(ctx, role, logPolicy, LambdaSpiderTazParserFolderName)
+	if err != nil {
+		return SpidersData{}, err
+	}
+
+	// SPIDER-DOWNLOADER
+	lambdaSpiderDownloader, err := pkg.BuildLambdaFunction(ctx, role, logPolicy, LambdaSpiderDownloaderFolderName)
 	if err != nil {
 		return SpidersData{}, err
 	}
 
 	return SpidersData{
-		LambdaSpiderMl: *lambdaSpiderMl,
-		LambdaSpiderParser: *lambdaSpiderParser,
+		LambdaSpiderMl:         *lambdaSpiderMl,
+		LambdaSpiderTazParser:  *lambdaSpiderParser,
+		LambdaSpiderDownloader: *lambdaSpiderDownloader,
 	}, nil
 }
 
 
 type SpidersConfig struct {
-
+	ArticleBucket s3.Bucket
+	ArticleTable  dynamodb.Table
 }
 
 type SpidersData struct {
-	LambdaSpiderMl lambda.Function
-	LambdaSpiderParser lambda.Function
+	LambdaSpiderMl         lambda.Function
+	LambdaSpiderTazParser  lambda.Function
+	LambdaSpiderDownloader lambda.Function
 }

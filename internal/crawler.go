@@ -18,11 +18,11 @@ func CreateCrawler(ctx *pulumi.Context, config CrawlerConfig) (CrawlerData, erro
 		return CrawlerData{}, err
 	}
 	crawlerInstance, err := ec2.NewInstance(ctx, pkg.GetResourceName("ec2-crawler"), &ec2.InstanceArgs{
-		Ami:          amazon2AmiHvm.ID(),
-		InstanceType: pulumi.String("t2.micro"),
-		SubnetId: config.CrawlerSubnet.ID(),
+		Ami:                 amazon2AmiHvm.ID(),
+		InstanceType:        pulumi.String("t2.micro"),
+		SubnetId:            config.CrawlerSubnet.ID(),
 		VpcSecurityGroupIds: config.CrawlerVpcSecurityGroups,
-		Tags: pkg.GetTags("Crawler"),
+		Tags:                pkg.GetTags("Crawler"),
 	})
 	if err != nil {
 		return CrawlerData{}, err

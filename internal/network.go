@@ -10,14 +10,15 @@ func CreateNetwork(ctx *pulumi.Context, _ NetworkConfig) (NetworkData, error) {
 	// VPC
 	vpc, err := ec2.NewVpc(ctx, pkg.GetResourceName("vpc"), &ec2.VpcArgs{
 		CidrBlock: pulumi.String("10.0.0.0/16"),
-		Tags: pkg.GetTags("Vpc"),
+		Tags:      pkg.GetTags("Vpc"),
 	})
 	if err != nil {
 		return NetworkData{}, err
 	}
 
 	// Security Group
-	crawlerSecurityGroup, err := ec2.NewSecurityGroup(ctx, pkg.GetResourceName("crawler-security-group"), &ec2.SecurityGroupArgs{
+	sgName := pkg.GetResourceName("crawler-security-group")
+	crawlerSecurityGroup, err := ec2.NewSecurityGroup(ctx, sgName, &ec2.SecurityGroupArgs{
 		VpcId: vpc.ID(),
 		Ingress: ec2.SecurityGroupIngressArray{
 			ec2.SecurityGroupIngressArgs{
@@ -28,6 +29,7 @@ func CreateNetwork(ctx *pulumi.Context, _ NetworkConfig) (NetworkData, error) {
 			},
 		},
 		Tags: pkg.GetTags("SecurityGroup"),
+		Name: pulumi.String(sgName),
 	})
 	if err != nil {
 		return NetworkData{}, err
@@ -36,7 +38,7 @@ func CreateNetwork(ctx *pulumi.Context, _ NetworkConfig) (NetworkData, error) {
 	// Internet Gateway
 	igw, err := ec2.NewInternetGateway(ctx, pkg.GetResourceName("igw"), &ec2.InternetGatewayArgs{
 		VpcId: vpc.ID(),
-		Tags: pkg.GetTags("InternetGateway"),
+		Tags:  pkg.GetTags("InternetGateway"),
 	})
 	if err != nil {
 		return NetworkData{}, err
@@ -45,7 +47,7 @@ func CreateNetwork(ctx *pulumi.Context, _ NetworkConfig) (NetworkData, error) {
 	publicSubnet, err := ec2.NewSubnet(ctx, pkg.GetResourceName("public-subnet"), &ec2.SubnetArgs{
 		VpcId:     vpc.ID(),
 		CidrBlock: pulumi.String("10.0.1.0/24"),
-		Tags: pkg.GetTags("PublicSubnet"),
+		Tags:      pkg.GetTags("PublicSubnet"),
 	})
 	if err != nil {
 		return NetworkData{}, err
@@ -54,7 +56,7 @@ func CreateNetwork(ctx *pulumi.Context, _ NetworkConfig) (NetworkData, error) {
 	privateSubnet, err := ec2.NewSubnet(ctx, pkg.GetResourceName("private-subnet"), &ec2.SubnetArgs{
 		VpcId:     vpc.ID(),
 		CidrBlock: pulumi.String("10.0.2.0/24"),
-		Tags: pkg.GetTags("PrivateSubnet"),
+		Tags:      pkg.GetTags("PrivateSubnet"),
 	})
 	if err != nil {
 		return NetworkData{}, err
@@ -69,7 +71,7 @@ func CreateNetwork(ctx *pulumi.Context, _ NetworkConfig) (NetworkData, error) {
 			},
 		},
 		VpcId: vpc.ID(),
-		Tags: pkg.GetTags("RouteTable"),
+		Tags:  pkg.GetTags("RouteTable"),
 	})
 	if err != nil {
 		return NetworkData{}, err

@@ -1,0 +1,44 @@
+version: '3'
+
+vars:
+  INTERNAL_PATH: ./internal
+  BUILD_PATH: ./build
+
+tasks:
+  deploy:
+    desc: Deploy project to AWS
+    cmds:
+      - task: prep
+      - echo Preparation phase successfully completed
+
+  prep:
+    desc: Prepare project for deployment
+    cmds:
+      - task: build-spider-downloader
+      - task: build-spider-ml
+      - task: build-spider-taz-parser
+      - echo Spider code successfully compiled
+
+  build-spider-downloader:
+    vars:
+      NAME: spider-downloader
+    cmds:
+      - GOOS=linux GOARCH=amd64 go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}/handler.go
+      - zip -r {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
+    silent: true
+
+  build-spider-ml:
+    vars:
+      NAME: spider-ml
+    cmds:
+      - GOOS=linux GOARCH=amd64 go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}/handler.go
+      - zip -r {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
+    silent: true
+
+  build-spider-taz-parser:
+    vars:
+      NAME: spider-taz-parser
+    cmds:
+      - GOOS=linux GOARCH=amd64 go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}/handler.go
+      - zip -r {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
+    silent: true
