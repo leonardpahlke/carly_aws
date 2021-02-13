@@ -6,6 +6,6 @@ func CreateCiCdWebsite(ctx *pulumi.Context, _ CiCdWebsiteConfig) (CiCdWebsiteCon
 	return CiCdWebsiteContext{}, nil
 }
 
-type CiCdWebsiteConfig struct {}
+type CiCdWebsiteConfig struct{}
 
-type CiCdWebsiteContext struct {}
+type CiCdWebsiteContext struct{}

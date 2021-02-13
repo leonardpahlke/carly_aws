@@ -59,7 +59,6 @@ func CreatePersistent(ctx *pulumi.Context, config PersistentConfig) (PersistentD
 	//	return PersistentData{}, err
 	//}
 
-
 	//docdbArticle, err := docdb.NewCluster(ctx, pkg.GetResourceName(config.Mongo.Name), &docdb.ClusterArgs{
 	//	BackupRetentionPeriod: pulumi.Int(config.Mongo.BackupRetentionPeriod),
 	//	ClusterIdentifier:     pulumi.String(pkg.GetResourceName(fmt.Sprintf("%sCluster", config.Mongo.Name))),
@@ -92,18 +91,18 @@ func CreatePersistent(ctx *pulumi.Context, config PersistentConfig) (PersistentD
 	//}
 
 	return PersistentData{
-		DdbArticleTable: ddbTableArticleRef,
+		DdbArticleTable:    ddbTableArticleRef,
 		S3ArticleDomBucket: s3ArticleDomBucket,
 		// MongoDbArticleAmi:       mongoDbAmi,
 	}, nil
 }
-
 
 type PersistentConfig struct {
 	DdbArticleTableName    string
 	S3BucketArticleDomName string
 	// Mongo   PersistentMongoConfig
 }
+
 //type PersistentMongoConfig struct {
 //	AmiId string
 //	AmiArn string
@@ -113,7 +112,7 @@ type PersistentConfig struct {
 //}
 
 type PersistentData struct {
-	DdbArticleTable   *dynamodb.Table
+	DdbArticleTable    *dynamodb.Table
 	S3ArticleDomBucket *s3.Bucket
 	// MongoDbArticleAmi *ec2.Ami
 }

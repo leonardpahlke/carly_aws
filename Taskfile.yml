@@ -9,20 +9,14 @@ tasks:
     desc: Deploy project to AWS
     cmds:
       - task: prep
-      - echo Preparation phase successfully completed
+      - echo "Preparation phase successfully completed"
       - pulumi up
 
   prep:
     desc: Prepare project for deployment
     cmds:
-      - task: setup-package
-      - task: build-spider-downloader
-      - task: build-spider-ml
-      - task: build-spider-taz-parser
-      - echo Spider code successfully compiled
-
-  setup-package:
-    cmds:
+      - task: go-get-all-dependecies
+      - echo "Dependecies installed"
       - task: build-spider-downloader
       - task: build-spider-ml
       - task: build-spider-taz-parser
@@ -32,22 +26,26 @@ tasks:
     vars:
       NAME: spider-downloader
     cmds:
-      - GOOS=linux GOARCH=amd64 go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}/handler.go
-      - zip -r {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
+      - GOOS=linux go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}
+      - zip -jrm {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
     silent: true
 
   build-spider-ml:
     vars:
       NAME: spider-ml
     cmds:
-      - GOOS=linux GOARCH=amd64 go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}/handler.go
-      - zip -r {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
+      - GOOS=linux go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}
+      - zip -jrm {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
     silent: true
 
   build-spider-taz-parser:
     vars:
       NAME: spider-taz-parser
     cmds:
-      - GOOS=linux GOARCH=amd64 go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}/handler.go
-      - zip -r {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
+      - GOOS=linux go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}
+      - zip -jrm {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
     silent: true
+
+  go-get-all-dependecies:
+    cmds:
+      - go get -v all

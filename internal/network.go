@@ -78,18 +78,18 @@ func CreateNetwork(ctx *pulumi.Context, _ NetworkConfig) (NetworkData, error) {
 	}
 
 	return NetworkData{
-		Vpc: vpc,
-		PublicSubnet: publicSubnet,
-		PrivateSubnet: privateSubnet,
+		Vpc:                  vpc,
+		PublicSubnet:         publicSubnet,
+		PrivateSubnet:        privateSubnet,
 		CrawlerSecurityGroup: crawlerSecurityGroup,
 	}, nil
 }
 
-type NetworkConfig struct {}
+type NetworkConfig struct{}
 
 type NetworkData struct {
-	Vpc *ec2.Vpc
-	PublicSubnet *ec2.Subnet
-	PrivateSubnet *ec2.Subnet
+	Vpc                  *ec2.Vpc
+	PublicSubnet         *ec2.Subnet
+	PrivateSubnet        *ec2.Subnet
 	CrawlerSecurityGroup *ec2.SecurityGroup
 }

@@ -17,7 +17,7 @@ const methodUpdate = "update"
 func CreateSpiderStateMachine(ctx *pulumi.Context, config SpiderStateMachineConfig) (SpiderStateMachineData, error) {
 	_, err := sfn.NewStateMachine(ctx, "SpiderStateMachine", &sfn.StateMachineArgs{
 		Name:       pulumi.Sprintf("SpiderStateMachine"),
-		RoleArn:    pulumi.String(""),  // todo step function role arn
+		RoleArn:    pulumi.String(""), // todo step function role arn
 		Definition: pulumi.String(fmt.Sprintf("%v%v%v%v%v%v%v%v%v%v%v%v%v", "{\n", "  \"Comment\": \"A Hello World example of the Amazon States Language using an AWS Lambda Function\",\n", "  \"StartAt\": \"HelloWorld\",\n", "  \"States\": {\n", "    \"HelloWorld\": {\n", "      \"Type\": \"Task\",\n", "      \"Resource\": \"", "aws_lambda_function.Lambda.Arn", "\",\n", "      \"End\": true\n", "    }\n", "  }\n", "}\n")),
 		Tags:       pkg.GetTags("SpiderStateMachine"),
 	})
@@ -27,16 +27,16 @@ func CreateSpiderStateMachine(ctx *pulumi.Context, config SpiderStateMachineConf
 	return SpiderStateMachineData{}, nil
 }
 
-type SpiderStateMachineConfig struct {}
+type SpiderStateMachineConfig struct{}
 
-type SpiderStateMachineData struct {}
+type SpiderStateMachineData struct{}
 
 func createKeyValuePairs(m map[string]string) string {
 	b := new(bytes.Buffer)
 	valEscapeString := ""
 	_, _ = fmt.Fprint(b, "{\n  ")
 	for key, value := range m {
-		if strings.ContainsAny(value,"{}") {
+		if strings.ContainsAny(value, "{}") {
 			valEscapeString = ""
 		} else {
 			valEscapeString = "\""
@@ -46,7 +46,6 @@ func createKeyValuePairs(m map[string]string) string {
 	_, _ = fmt.Fprint(b, "}")
 	return b.String()
 }
-
 
 // Tasks definitions
 /*
@@ -70,7 +69,7 @@ func createTaskLambdaFunction(taskName string, lambdaArn string, functionName st
 			"Next":     nextState,
 			"Parameters": createKeyValuePairs(map[string]string{
 				"FunctionName": functionName,
-				"Payload": createKeyValuePairs(payload),
+				"Payload":      createKeyValuePairs(payload),
 			}),
 		}),
 	})
@@ -97,7 +96,7 @@ func createTaskLambdaFunction(taskName string, lambdaArn string, functionName st
   },
   "Next": "NEXT_STATE"
 }
- */
+*/
 func createTaskDynamoDB(method string, tableName string, updateInformation UpdateInformation, itemKeyValue map[string]string, nextState string) string {
 	resource := ""
 	parameterKey := "Key"
@@ -123,10 +122,10 @@ func createTaskDynamoDB(method string, tableName string, updateInformation Updat
 			"Resource": resource,
 			"Next":     nextState,
 			"Parameters": createKeyValuePairs(map[string]string{
-				"UpdateExpression": updateInformation.updateExpression,
+				"UpdateExpression":          updateInformation.updateExpression,
 				"ExpressionAttributeValues": createKeyValuePairs(updateInformation.expressionAttributeValues),
-				"TableName": tableName,
-				parameterKey: createKeyValuePairs(itemKeyValue),
+				"TableName":                 tableName,
+				parameterKey:                createKeyValuePairs(itemKeyValue),
 			}),
 		})
 	} else {
@@ -135,8 +134,8 @@ func createTaskDynamoDB(method string, tableName string, updateInformation Updat
 			"Resource": resource,
 			"Next":     nextState,
 			"Parameters": createKeyValuePairs(map[string]string{
-				"TableName": tableName,
-				parameterKey:   createKeyValuePairs(itemKeyValue),
+				"TableName":  tableName,
+				parameterKey: createKeyValuePairs(itemKeyValue),
 			}),
 		})
 	}
@@ -145,7 +144,7 @@ func createTaskDynamoDB(method string, tableName string, updateInformation Updat
 }
 
 type UpdateInformation struct {
-	updateExpression string
+	updateExpression          string
 	expressionAttributeValues map[string]string
 }
 
@@ -169,9 +168,7 @@ type UpdateInformation struct {
   },
   "Next": "NEXT_STATE"
 }
- */
-
-
+*/
 
 /*
 "Choice State": {
@@ -205,10 +202,10 @@ type UpdateInformation struct {
   ],
   "Default": "DEFAULT_STATE"
 }
- */
+*/
 func getChoiceParserStepFunction(variableToCompare string, newspaperIdentifier []newsPaperParserInfo) string {
 	choiceStr := "\"Type\": \"Choice\", " +
-				 "\"Choices\": [{ "
+		"\"Choices\": [{ "
 	for i, e := range newspaperIdentifier {
 		choiceStr += strEqualsChoiceStepFunction(variableToCompare, e.id, e.nextState)
 		if i != 0 {
@@ -243,10 +240,10 @@ func getChoiceParserStepFunction(variableToCompare string, newspaperIdentifier [
 
 func strEqualsChoiceStepFunction(variable string, stringEquals string, nextState string) string {
 	return "{" +
-				"\"Variable\": \"$." + variable + "\"," +
-				"\"StringEquals\": " + stringEquals +
-				"\"Next\": \"" + nextState +  "\"" +
-		   "}"
+		"\"Variable\": \"$." + variable + "\"," +
+		"\"StringEquals\": " + stringEquals +
+		"\"Next\": \"" + nextState + "\"" +
+		"}"
 }
 
 type newsPaperParserInfo struct {

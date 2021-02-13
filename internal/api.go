@@ -32,17 +32,17 @@ func CreateAPI(ctx *pulumi.Context, _ ApiConfig) (ApiContext, error) {
 	//logPolicy, err := iam.NewRolePolicy(ctx, pkg.GetResourceName("lambda-log-policy"), &iam.RolePolicyArgs{
 	//	Role: role.Name,
 	//	Policy: pulumi.String(`{
-    //            "Version": "2012-10-17",
-    //            "Statement": [{
-    //                "Effect": "Allow",
-    //                "Action": [
-    //                    "logs:CreateLogGroup",
-    //                    "logs:CreateLogStream",
-    //                    "logs:PutLogEvents"
-    //                ],
-    //                "Resource": "arn:aws:logs:*:*:*"
-    //            }]
-    //        }`),
+	//            "Version": "2012-10-17",
+	//            "Statement": [{
+	//                "Effect": "Allow",
+	//                "Action": [
+	//                    "logs:CreateLogGroup",
+	//                    "logs:CreateLogStream",
+	//                    "logs:PutLogEvents"
+	//                ],
+	//                "Resource": "arn:aws:logs:*:*:*"
+	//            }]
+	//        }`),
 	//})
 	//
 	//// SPIDER-ML
@@ -57,12 +57,12 @@ func CreateAPI(ctx *pulumi.Context, _ ApiConfig) (ApiContext, error) {
 	//	Description: pulumi.String("An API Gateway for the UpperCase function"),
 	//	Policy: pulumi.String(`{
 	//		"Version": "2012-10-17",
-  	//		"Statement": [{
-    //  			"Action": "sts:AssumeRole",
-    //  			"Principal": {
-    //    			"Service": "lambda.amazonaws.com"
-    //  			},
-    //  			"Effect": "Allow",
+	//		"Statement": [{
+	//  			"Action": "sts:AssumeRole",
+	//  			"Principal": {
+	//    			"Service": "lambda.amazonaws.com"
+	//  			},
+	//  			"Effect": "Allow",
 	//			"Sid": ""
 	//		},
 	//		{
@@ -142,7 +142,6 @@ func CreateAPI(ctx *pulumi.Context, _ ApiConfig) (ApiContext, error) {
 	return ApiContext{}, nil
 }
 
+type ApiConfig struct{}
 
-type ApiConfig struct {}
-
-type ApiContext struct {}
+type ApiContext struct{}

@@ -38,7 +38,7 @@ func CreateStaticWebsite(ctx *pulumi.Context, _ StaticWebsiteConfig) (StaticWebs
 			},
 		}),
 	}); err != nil {
-		return StaticWebsiteData{},err
+		return StaticWebsiteData{}, err
 	}
 
 	ctx.Export("bucketName", siteBucket.ID())
@@ -49,7 +49,7 @@ func CreateStaticWebsite(ctx *pulumi.Context, _ StaticWebsiteConfig) (StaticWebs
 	}, nil
 }
 
-type StaticWebsiteConfig struct {}
+type StaticWebsiteConfig struct{}
 
 type StaticWebsiteData struct {
 	SiteBucket *s3.Bucket

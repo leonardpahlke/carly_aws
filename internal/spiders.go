@@ -51,13 +51,13 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 
 	// SPIDER-ML
 	lambdaSpiderMl, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
-		Role:            role,
-		LogPolicy:       logPolicy,
-		Env:             pulumi.StringMap{
+		Role:      role,
+		LogPolicy: logPolicy,
+		Env: pulumi.StringMap{
 			pkg.EnvSpiderName: pulumi.String("SpiderMl"),
 		},
-		HandlerFolder:   LambdaSpiderMlFolderName,
-		Timeout:         pkg.DefaultLambdaTimeout,
+		HandlerFolder: LambdaSpiderMlFolderName,
+		Timeout:       pkg.DefaultLambdaTimeout,
 		//VpcId:           config.NetworkData.Vpc.ID(),
 		//SecurityGroupId: config.NetworkData.CrawlerSecurityGroup.ID(),
 		//SubnetId:        config.NetworkData.PublicSubnet.ID(),
@@ -68,13 +68,13 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 
 	// SPIDER-TAZ-PARSER
 	lambdaSpiderTazParser, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
-		Role:            role,
-		LogPolicy:       logPolicy,
-		Env:             pulumi.StringMap{
+		Role:      role,
+		LogPolicy: logPolicy,
+		Env: pulumi.StringMap{
 			pkg.EnvSpiderName: pulumi.String("SpiderTazParser"),
 		},
-		HandlerFolder:   LambdaSpiderTazParserFolderName,
-		Timeout:         pkg.DefaultLambdaTimeout,
+		HandlerFolder: LambdaSpiderTazParserFolderName,
+		Timeout:       pkg.DefaultLambdaTimeout,
 		//VpcId:           config.NetworkData.Vpc.ID(),
 		//SecurityGroupId: config.NetworkData.CrawlerSecurityGroup.ID(),
 		//SubnetId:        config.NetworkData.PublicSubnet.ID(),
@@ -85,14 +85,14 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 
 	// SPIDER-DOWNLOADER
 	lambdaSpiderDownloader, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
-		Role:            role,
-		LogPolicy:       logPolicy,
-		Env: 			 pulumi.StringMap{
-			pkg.EnvSpiderName: pulumi.String("SpiderDownloader"),
+		Role:      role,
+		LogPolicy: logPolicy,
+		Env: pulumi.StringMap{
+			pkg.EnvSpiderName:    pulumi.String("SpiderDownloader"),
 			pkg.EnvArticleBucket: config.ArticleBucket.Bucket,
 		},
-		HandlerFolder:   LambdaSpiderDownloaderFolderName,
-		Timeout:         pkg.DefaultLambdaTimeout,
+		HandlerFolder: LambdaSpiderDownloaderFolderName,
+		Timeout:       pkg.DefaultLambdaTimeout,
 		//VpcId:           config.NetworkData.Vpc.ID(),
 		//SecurityGroupId: config.NetworkData.CrawlerSecurityGroup.ID(),
 		//SubnetId:        config.NetworkData.PublicSubnet.ID(),
@@ -107,7 +107,6 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 		LambdaSpiderDownloader: *lambdaSpiderDownloader,
 	}, nil
 }
-
 
 type SpidersConfig struct {
 	ArticleBucket s3.Bucket

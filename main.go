@@ -5,7 +5,6 @@ import (
 	"github.com/pulumi/pulumi/sdk/v2/go/pulumi"
 )
 
-
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 		// NETWORK - VPC, Subnets, Security Groups
@@ -18,8 +17,8 @@ func main() {
 		persistentData, err := internal.CreatePersistent(
 			ctx,
 			internal.PersistentConfig{
-				DdbArticleTableName: "ddbArticleTableName",
-				S3BucketArticleDomName:  "bucket-article-dom-store",
+				DdbArticleTableName:    "ddbArticleTableName",
+				S3BucketArticleDomName: "bucket-article-dom-store",
 			},
 		)
 		if err != nil {
@@ -27,19 +26,19 @@ func main() {
 		}
 
 		//// API - Gateway, Lambda Handler
-		//_, err = internal.CreateAPI(ctx, internal.ApiConfig{})
+		//_, err = handler.CreateAPI(ctx, handler.ApiConfig{})
 		//if err != nil {
 		//	return err
 		//}
 
 		//// STATIC WEBSITE - S3
-		//_, err = internal.CreateStaticWebsite(ctx, internal.StaticWebsiteConfig{})
+		//_, err = handler.CreateStaticWebsite(ctx, handler.StaticWebsiteConfig{})
 		//if err != nil {
 		//	return err
 		//}
 
 		//// CI CD Website - CodePipeline
-		//_, err = internal.CreateCiCdWebsite(ctx, internal.CiCdWebsiteConfig{})
+		//_, err = handler.CreateCiCdWebsite(ctx, handler.CiCdWebsiteConfig{})
 		//if err != nil {
 		//	return err
 		//}
@@ -47,15 +46,15 @@ func main() {
 		// Spiders - Lambdas
 		_, err = internal.CreateSpiders(ctx, internal.SpidersConfig{
 			ArticleBucket: *persistentData.S3ArticleDomBucket,
-			ArticleTable: *persistentData.DdbArticleTable,
-			NetworkData: networkData,
+			ArticleTable:  *persistentData.DdbArticleTable,
+			NetworkData:   networkData,
 		})
 		if err != nil {
 			return err
 		}
 
 		//// Crawler - EC2
-		//_, err = internal.CreateCrawler(ctx, internal.CrawlerConfig{
+		//_, err = handler.CreateCrawler(ctx, handler.CrawlerConfig{
 		//	CrawlerSubnet: networkData.PrivateSubnet,
 		//	CrawlerVpcSecurityGroups: pulumi.StringArray{networkData.CrawlerSecurityGroup.ID()},
 		//})

@@ -1,7 +1,7 @@
 package main
 
 import (
-	spider_downloader "carly_aws/internal/spider-downloader"
+	spider_downloader "carly_aws/internal/spider-downloader/handler"
 	"carly_aws/pkg"
 	"fmt"
 	log "github.com/sirupsen/logrus"
@@ -13,7 +13,7 @@ const NewspaperNameTAZ = "taz"
 const NewspaperNameZeitOnline = "zeitonline"
 const NewspaperNameFrankfurterRundschau = "frankfurterrundschau"
 
-const name = "Main" + pkg.EnvSpiderName
+const name = "LocalTest" + pkg.EnvSpiderName
 
 func main() {
 	_ = os.Setenv("AWS_REGION", pkg.AWSDeployRegion)
@@ -56,9 +56,8 @@ func main() {
 	}
 }
 
-
 func reqSpiderDownloader(event pkg.SpiderDownloaderEvent, newspaper string) bool {
-	resp, err := spider_downloader.Main(event)
+	resp, err := spider_downloader.Handler(event)
 	if err != nil {
 		pkg.LogError(name, fmt.Sprintf("%s-downloader processing error", newspaper), err)
 		return false

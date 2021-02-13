@@ -34,7 +34,7 @@ func CreateCrawler(ctx *pulumi.Context, config CrawlerConfig) (CrawlerData, erro
 }
 
 type CrawlerConfig struct {
-	CrawlerSubnet *ec2.Subnet
+	CrawlerSubnet            *ec2.Subnet
 	CrawlerVpcSecurityGroups pulumi.StringArray
 }
 
