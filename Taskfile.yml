@@ -10,9 +10,18 @@ tasks:
     cmds:
       - task: prep
       - echo Preparation phase successfully completed
+      - pulumi up
 
   prep:
     desc: Prepare project for deployment
+    cmds:
+      - task: setup-package
+      - task: build-spider-downloader
+      - task: build-spider-ml
+      - task: build-spider-taz-parser
+      - echo Spider code successfully compiled
+
+  setup-package:
     cmds:
       - task: build-spider-downloader
       - task: build-spider-ml

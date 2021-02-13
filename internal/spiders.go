@@ -13,7 +13,7 @@ const LambdaSpiderMlFolderName = "spider-ml"
 const LambdaSpiderTazParserFolderName = "spider-taz-parser"
 const LambdaSpiderDownloaderFolderName = "spider-downloader"
 
-func CreateSpiders(ctx *pulumi.Context, _ SpidersConfig) (SpidersData, error) {
+func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, error) {
 	// Create an IAM role.
 	role, err := iam.NewRole(ctx, "task-exec-role", &iam.RoleArgs{
 		AssumeRolePolicy: pulumi.String(`{
@@ -50,26 +50,60 @@ func CreateSpiders(ctx *pulumi.Context, _ SpidersConfig) (SpidersData, error) {
 	})
 
 	// SPIDER-ML
-	lambdaSpiderMl, err := pkg.BuildLambdaFunction(ctx, role, logPolicy, LambdaSpiderMlFolderName)
+	lambdaSpiderMl, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
+		Role:            role,
+		LogPolicy:       logPolicy,
+		Env:             pulumi.StringMap{
+			pkg.EnvSpiderName: pulumi.String("SpiderMl"),
+		},
+		HandlerFolder:   LambdaSpiderMlFolderName,
+		Timeout:         pkg.DefaultLambdaTimeout,
+		//VpcId:           config.NetworkData.Vpc.ID(),
+		//SecurityGroupId: config.NetworkData.CrawlerSecurityGroup.ID(),
+		//SubnetId:        config.NetworkData.PublicSubnet.ID(),
+	})
 	if err != nil {
 		return SpidersData{}, err
 	}
 
-	// SPIDER-PARSER
-	lambdaSpiderParser, err := pkg.BuildLambdaFunction(ctx, role, logPolicy, LambdaSpiderTazParserFolderName)
+	// SPIDER-TAZ-PARSER
+	lambdaSpiderTazParser, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
+		Role:            role,
+		LogPolicy:       logPolicy,
+		Env:             pulumi.StringMap{
+			pkg.EnvSpiderName: pulumi.String("SpiderTazParser"),
+		},
+		HandlerFolder:   LambdaSpiderTazParserFolderName,
+		Timeout:         pkg.DefaultLambdaTimeout,
+		//VpcId:           config.NetworkData.Vpc.ID(),
+		//SecurityGroupId: config.NetworkData.CrawlerSecurityGroup.ID(),
+		//SubnetId:        config.NetworkData.PublicSubnet.ID(),
+	})
 	if err != nil {
 		return SpidersData{}, err
 	}
 
 	// SPIDER-DOWNLOADER
-	lambdaSpiderDownloader, err := pkg.BuildLambdaFunction(ctx, role, logPolicy, LambdaSpiderDownloaderFolderName)
+	lambdaSpiderDownloader, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
+		Role:            role,
+		LogPolicy:       logPolicy,
+		Env: 			 pulumi.StringMap{
+			pkg.EnvSpiderName: pulumi.String("SpiderDownloader"),
+			pkg.EnvArticleBucket: config.ArticleBucket.Bucket,
+		},
+		HandlerFolder:   LambdaSpiderDownloaderFolderName,
+		Timeout:         pkg.DefaultLambdaTimeout,
+		//VpcId:           config.NetworkData.Vpc.ID(),
+		//SecurityGroupId: config.NetworkData.CrawlerSecurityGroup.ID(),
+		//SubnetId:        config.NetworkData.PublicSubnet.ID(),
+	})
 	if err != nil {
 		return SpidersData{}, err
 	}
 
 	return SpidersData{
 		LambdaSpiderMl:         *lambdaSpiderMl,
-		LambdaSpiderTazParser:  *lambdaSpiderParser,
+		LambdaSpiderTazParser:  *lambdaSpiderTazParser,
 		LambdaSpiderDownloader: *lambdaSpiderDownloader,
 	}, nil
 }
@@ -78,6 +112,7 @@ func CreateSpiders(ctx *pulumi.Context, _ SpidersConfig) (SpidersData, error) {
 type SpidersConfig struct {
 	ArticleBucket s3.Bucket
 	ArticleTable  dynamodb.Table
+	NetworkData   NetworkData
 }
 
 type SpidersData struct {

@@ -17,8 +17,8 @@ func CreateNetwork(ctx *pulumi.Context, _ NetworkConfig) (NetworkData, error) {
 	}
 
 	// Security Group
-	sgName := pkg.GetResourceName("crawler-security-group")
-	crawlerSecurityGroup, err := ec2.NewSecurityGroup(ctx, sgName, &ec2.SecurityGroupArgs{
+	crawlerSgName := pkg.GetResourceName("crawler-security-group")
+	crawlerSecurityGroup, err := ec2.NewSecurityGroup(ctx, crawlerSgName, &ec2.SecurityGroupArgs{
 		VpcId: vpc.ID(),
 		Ingress: ec2.SecurityGroupIngressArray{
 			ec2.SecurityGroupIngressArgs{
@@ -29,7 +29,7 @@ func CreateNetwork(ctx *pulumi.Context, _ NetworkConfig) (NetworkData, error) {
 			},
 		},
 		Tags: pkg.GetTags("SecurityGroup"),
-		Name: pulumi.String(sgName),
+		Name: pulumi.String(crawlerSgName),
 	})
 	if err != nil {
 		return NetworkData{}, err

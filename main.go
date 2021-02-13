@@ -5,10 +5,11 @@ import (
 	"github.com/pulumi/pulumi/sdk/v2/go/pulumi"
 )
 
+
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 		// NETWORK - VPC, Subnets, Security Groups
-		_, err := internal.CreateNetwork(ctx, internal.NetworkConfig{})
+		networkData, err := internal.CreateNetwork(ctx, internal.NetworkConfig{})
 		if err != nil {
 			return err
 		}
@@ -47,6 +48,7 @@ func main() {
 		_, err = internal.CreateSpiders(ctx, internal.SpidersConfig{
 			ArticleBucket: *persistentData.S3ArticleDomBucket,
 			ArticleTable: *persistentData.DdbArticleTable,
+			NetworkData: networkData,
 		})
 		if err != nil {
 			return err

@@ -22,16 +22,16 @@ func CreatePersistent(ctx *pulumi.Context, config PersistentConfig) (PersistentD
 	ddbTableArticleRef, err := dynamodb.NewTable(ctx, pkg.GetResourceName(config.DdbArticleTableName), &dynamodb.TableArgs{
 		Attributes: dynamodb.TableAttributeArray{
 			&dynamodb.TableAttributeArgs{
-				Name: pulumi.String("ArticleRef"),
+				Name: pulumi.String(pkg.DdbPrimaryKeyArticleRef),
 				Type: pulumi.String("S"),
 			},
 			&dynamodb.TableAttributeArgs{
-				Name: pulumi.String("Newspaper"),
+				Name: pulumi.String(pkg.DdbSortKeyNewspaper),
 				Type: pulumi.String("S"),
 			},
 		},
-		HashKey:       pulumi.String("ArticleRef"),
-		RangeKey:      pulumi.String("Newspaper"),
+		HashKey:       pulumi.String(pkg.DdbPrimaryKeyArticleRef),
+		RangeKey:      pulumi.String(pkg.DdbSortKeyNewspaper),
 		ReadCapacity:  pulumi.Int(1),
 		WriteCapacity: pulumi.Int(1),
 		Name:          pulumi.String(pkg.GetResourceName(config.DdbArticleTableName)),
