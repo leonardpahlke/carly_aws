@@ -1,12 +1,14 @@
 package pkg
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/lambda"
 	"github.com/pulumi/pulumi/sdk/v2/go/pulumi"
 	"os"
+	"strings"
 )
 
 const ProjectName = "carly"
@@ -96,4 +98,20 @@ type BuildLambdaConfig struct {
 	//VpcId pulumi.IDOutput
 	//SecurityGroupId pulumi.IDOutput
 	//SubnetId pulumi.IDOutput
+}
+
+func CreateKeyValuePairs(m map[string]string) string {
+	b := new(bytes.Buffer)
+	valEscapeString := ""
+	_, _ = fmt.Fprint(b, "{\n  ")
+	for key, value := range m {
+		if strings.ContainsAny(value, "{}") {
+			valEscapeString = ""
+		} else {
+			valEscapeString = "\""
+		}
+		_, _ = fmt.Fprintf(b, "  \"%s\": %s%s%s\n  ", key, valEscapeString, value, valEscapeString)
+	}
+	_, _ = fmt.Fprint(b, "}")
+	return b.String()
 }

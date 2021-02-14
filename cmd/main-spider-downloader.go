@@ -19,11 +19,9 @@ func main() {
 	_ = os.Setenv("AWS_REGION", pkg.AWSDeployRegion)
 	_ = os.Setenv(pkg.EnvSpiderName, "SpiderDownloader")
 	_ = os.Setenv(pkg.EnvArticleBucket, "carly-dev-bucket-article-dom-store")
-	assetsPath := "assets/"
-	_ = os.Setenv(pkg.EnvFilePrefix, assetsPath)
 	_ = os.Setenv(pkg.EnvLogLevel, strconv.Itoa(int(log.InfoLevel)))
 
-	err := os.Mkdir(assetsPath, 0755)
+	err := os.Mkdir("tmp/", 0755)
 	if err == nil {
 		pkg.LogInfo(name, "folder created")
 	}

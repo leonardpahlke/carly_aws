@@ -29,11 +29,10 @@ func Handler(event pkg.SpiderDownloaderEvent) (pkg.SpiderDownloaderResponse, err
 
 	s3BucketName, _ := pkg.CheckEnvNotEmpty(pkg.EnvArticleBucket)
 	spiderName, _ := pkg.CheckEnvNotEmpty(pkg.EnvSpiderName)
-	filePrefix := os.Getenv(pkg.EnvFilePrefix)
 	pkg.SetLogLevel()
 
 	fileName := fmt.Sprintf("%s.html", event.ArticleReference)
-	fileFullPathName := filePrefix + fileName
+	fileFullPathName := "/tmp/" + fileName
 
 	pkg.LogInfo(spiderName, fmt.Sprintf("setup %s", event))
 

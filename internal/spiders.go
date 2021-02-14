@@ -14,8 +14,9 @@ const LambdaSpiderTazParserFolderName = "spider-taz-parser"
 const LambdaSpiderDownloaderFolderName = "spider-downloader"
 
 func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, error) {
-	// Create an IAM role.
-	role, err := iam.NewRole(ctx, "task-exec-role", &iam.RoleArgs{
+
+	// spiderDownloaderRole
+	spiderDownloaderRole, err := iam.NewRole(ctx, pkg.GetResourceName(LambdaSpiderDownloaderFolderName + "-role"), &iam.RoleArgs{
 		AssumeRolePolicy: pulumi.String(`{
 				"Version": "2012-10-17",
 				"Statement": [{
@@ -32,9 +33,60 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 		return SpidersData{}, err
 	}
 
+	spiderParserRole, err := iam.NewRole(ctx, pkg.GetResourceName("spider-parser-role"), &iam.RoleArgs{
+		AssumeRolePolicy: pulumi.String(`{
+				"Version": "2012-10-17",
+				"Statement": [{
+					"Sid": "",
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "lambda.amazonaws.com"
+					},
+					"Action": "sts:AssumeRole"
+				}]
+			}`),
+	})
+	if err != nil {
+		return SpidersData{}, err
+	}
+
+	spiderMlRole, err := iam.NewRole(ctx, pkg.GetResourceName(LambdaSpiderMlFolderName + "-role"), &iam.RoleArgs{
+		AssumeRolePolicy: pulumi.String(`{
+				"Version": "2012-10-17",
+				"Statement": [{
+					"Sid": "",
+					"Effect": "Allow",
+					"Principal": {
+						"Service": "lambda.amazonaws.com"
+					},
+					"Action": "sts:AssumeRole"
+				}]
+			}`),
+	})
+	if err != nil {
+		return SpidersData{}, err
+	}
+
+	_, err = iam.NewRolePolicy(ctx, pkg.GetResourceName("s3-log-policy"), &iam.RolePolicyArgs{
+		Role: spiderDownloaderRole.Name,
+		Policy: pulumi.String(`{
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Action": "s3:PutObject",
+                    "Resource": "arn:aws:s3:::carly-dev-bucket-article-dom-store/*"
+                }]
+            }`),
+	})
+
+
+	if err != nil {
+		return SpidersData{}, err
+	}
+
 	// Attach a policy to allow writing logs to CloudWatch
-	logPolicy, err := iam.NewRolePolicy(ctx, pkg.GetResourceName("lambda-log-policy"), &iam.RolePolicyArgs{
-		Role: role.Name,
+	logPolicySpiderMl, err := iam.NewRolePolicy(ctx, pkg.GetResourceName(LambdaSpiderMlFolderName + "-log-policy"), &iam.RolePolicyArgs{
+		Role: spiderMlRole.Name,
 		Policy: pulumi.String(`{
                 "Version": "2012-10-17",
                 "Statement": [{
@@ -48,11 +100,54 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
                 }]
             }`),
 	})
+	if err != nil {
+		return SpidersData{}, err
+	}
+
+	// Attach a policy to allow writing logs to CloudWatch
+	logPolicySpiderParser, err := iam.NewRolePolicy(ctx, pkg.GetResourceName("spider-parser-log-policy"), &iam.RolePolicyArgs{
+		Role: spiderParserRole.Name,
+		Policy: pulumi.String(`{
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Action": [
+                        "logs:CreateLogGroup",
+                        "logs:CreateLogStream",
+                        "logs:PutLogEvents"
+                    ],
+                    "Resource": "arn:aws:logs:*:*:*"
+                }]
+            }`),
+	})
+	if err != nil {
+		return SpidersData{}, err
+	}
+
+	// Attach a policy to spider-downloader to allow to store objects in article s3 bucket
+	logPolicySpiderDownloader, err := iam.NewRolePolicy(ctx, pkg.GetResourceName(LambdaSpiderDownloaderFolderName + "-log-policy"), &iam.RolePolicyArgs{
+		Role: spiderDownloaderRole.Name,
+		Policy: pulumi.String(`{
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Action": [
+                        "logs:CreateLogGroup",
+                        "logs:CreateLogStream",
+                        "logs:PutLogEvents"
+                    ],
+                    "Resource": "arn:aws:logs:*:*:*"
+                }]
+            }`),
+	})
+	if err != nil {
+		return SpidersData{}, err
+	}
 
 	// SPIDER-ML
 	lambdaSpiderMl, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
-		Role:      role,
-		LogPolicy: logPolicy,
+		Role:      spiderMlRole,
+		LogPolicy: logPolicySpiderMl,
 		Env: pulumi.StringMap{
 			pkg.EnvSpiderName: pulumi.String("SpiderMl"),
 		},
@@ -68,8 +163,8 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 
 	// SPIDER-TAZ-PARSER
 	lambdaSpiderTazParser, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
-		Role:      role,
-		LogPolicy: logPolicy,
+		Role:      spiderParserRole,
+		LogPolicy: logPolicySpiderParser,
 		Env: pulumi.StringMap{
 			pkg.EnvSpiderName: pulumi.String("SpiderTazParser"),
 		},
@@ -85,8 +180,8 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 
 	// SPIDER-DOWNLOADER
 	lambdaSpiderDownloader, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
-		Role:      role,
-		LogPolicy: logPolicy,
+		Role:      spiderDownloaderRole,
+		LogPolicy: logPolicySpiderDownloader,
 		Env: pulumi.StringMap{
 			pkg.EnvSpiderName:    pulumi.String("SpiderDownloader"),
 			pkg.EnvArticleBucket: config.ArticleBucket.Bucket,
