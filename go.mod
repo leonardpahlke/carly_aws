@@ -11,6 +11,7 @@ require (
 	github.com/cheggaaa/pb v1.0.29 // indirect
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/gliderlabs/ssh v0.3.2 // indirect
+	github.com/gocolly/colly/v2 v2.1.0
 	github.com/gofrs/flock v0.8.0 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -36,7 +37,7 @@ require (
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
+	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf // indirect
 	golang.org/x/text v0.3.5 // indirect

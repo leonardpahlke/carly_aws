@@ -10,7 +10,7 @@ import (
 )
 
 const LambdaSpiderMlFolderName = "spider-ml"
-const LambdaSpiderTazParserFolderName = "spider-taz-parser"
+const LambdaSpiderParserFolderName = "spider-parser"
 const LambdaSpiderDownloaderFolderName = "spider-downloader"
 
 func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, error) {
@@ -149,7 +149,7 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 		Role:      spiderMlRole,
 		LogPolicy: logPolicySpiderMl,
 		Env: pulumi.StringMap{
-			pkg.EnvSpiderName: pulumi.String("SpiderMl"),
+			pkg.EnvSpiderName: pulumi.String(pkg.SpiderNameMl),
 		},
 		HandlerFolder: LambdaSpiderMlFolderName,
 		Timeout:       pkg.DefaultLambdaTimeout,
@@ -161,14 +161,14 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 		return SpidersData{}, err
 	}
 
-	// SPIDER-TAZ-PARSER
-	lambdaSpiderTazParser, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
+	// SPIDER-PARSER
+	lambdaSpiderParser, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
 		Role:      spiderParserRole,
 		LogPolicy: logPolicySpiderParser,
 		Env: pulumi.StringMap{
-			pkg.EnvSpiderName: pulumi.String("SpiderTazParser"),
+			pkg.EnvSpiderName: pulumi.String(pkg.SpiderNameParser),
 		},
-		HandlerFolder: LambdaSpiderTazParserFolderName,
+		HandlerFolder: LambdaSpiderParserFolderName,
 		Timeout:       pkg.DefaultLambdaTimeout,
 		//VpcId:           config.NetworkData.Vpc.ID(),
 		//SecurityGroupId: config.NetworkData.CrawlerSecurityGroup.ID(),
@@ -183,7 +183,7 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 		Role:      spiderDownloaderRole,
 		LogPolicy: logPolicySpiderDownloader,
 		Env: pulumi.StringMap{
-			pkg.EnvSpiderName:    pulumi.String("SpiderDownloader"),
+			pkg.EnvSpiderName:    pulumi.String(pkg.SpiderNameDownloader),
 			pkg.EnvArticleBucket: config.ArticleBucket.Bucket,
 		},
 		HandlerFolder: LambdaSpiderDownloaderFolderName,
@@ -198,7 +198,7 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 
 	return SpidersData{
 		LambdaSpiderMl:         *lambdaSpiderMl,
-		LambdaSpiderTazParser:  *lambdaSpiderTazParser,
+		LambdaSpiderTazParser:  *lambdaSpiderParser,
 		LambdaSpiderDownloader: *lambdaSpiderDownloader,
 	}, nil
 }

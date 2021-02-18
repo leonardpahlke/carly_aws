@@ -1,4 +1,4 @@
-build
+build/
 # Created by .ignore support plugin (hsz.mobi)
 ### JupyterNotebooks template
 # gitignore template for Jupyter Notebooks
@@ -195,6 +195,8 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+
+temp/
 
 # IPython
 profile_default/

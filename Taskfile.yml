@@ -19,7 +19,7 @@ tasks:
       - echo "Dependecies installed"
       - task: build-spider-downloader
       - task: build-spider-ml
-      - task: build-spider-taz-parser
+      - task: build-spider-parser
       - echo Spider code successfully compiled
 
   build-spider-downloader:
@@ -40,7 +40,7 @@ tasks:
 
   build-spider-taz-parser:
     vars:
-      NAME: spider-taz-parser
+      NAME: spider-parser
     cmds:
       - GOOS=linux go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}
       - zip -jrm {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler

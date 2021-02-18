@@ -41,6 +41,15 @@ func GetAwsMeta(ctx *pulumi.Context) (*aws.GetCallerIdentityResult, *aws.GetRegi
 	return account, region, nil
 }
 
+func ListContains(element string, list []string) bool {
+	for _, elem := range list {
+		if element == elem {
+			return true
+		}
+	}
+	return false
+}
+
 func CheckEnvNotEmpty(key string) (string, bool) {
 	envString, isEmpty := CheckEnv(key, "")
 	if isEmpty {

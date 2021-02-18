@@ -88,6 +88,7 @@ func Handler(event pkg.SpiderDownloaderEvent) (pkg.SpiderDownloaderResponse, err
 	log.Infof("Written bytes to file %x\n", l)
 
 	return pkg.SpiderDownloaderResponse{
+		ArticleDom: string(html),
 		ArticleReference: event.ArticleReference,
 		ArticleUrl:       event.ArticleUrl,
 		Newspaper:        event.Newspaper,
