@@ -38,7 +38,7 @@ tasks:
       - zip -jrm {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
     silent: true
 
-  build-spider-taz-parser:
+  build-spider-parser:
     vars:
       NAME: spider-parser
     cmds:

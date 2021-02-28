@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/iam"
@@ -123,4 +124,14 @@ func CreateKeyValuePairs(m map[string]string) string {
 	}
 	_, _ = fmt.Fprint(b, "}")
 	return b.String()
+}
+
+
+func MarshalStruct(structIn interface{}) []byte {
+	b, err := json.Marshal(structIn)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	return b
 }

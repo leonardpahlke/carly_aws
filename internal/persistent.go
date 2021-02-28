@@ -50,6 +50,15 @@ func CreatePersistent(ctx *pulumi.Context, config PersistentConfig) (PersistentD
 		return PersistentData{}, err
 	}
 
+	// Article Analytics S3-Bucket
+	s3ArticleAnalyticsBucket, err := s3.NewBucket(ctx, pkg.GetResourceName(config.S3BucketArticleAnalyticsName), &s3.BucketArgs{
+		Bucket: pulumi.String(pkg.GetResourceName(config.S3BucketArticleAnalyticsName)),
+		Tags:   pkg.GetTags(config.S3BucketArticleAnalyticsName),
+	})
+	if err != nil {
+		return PersistentData{}, err
+	}
+
 	//mongoDbAmi, err := ec2.GetAmi(ctx, pkg.GetResourceName(config.Mongo.Name), pulumi.ID(config.Mongo.AmiId), &ec2.AmiState{
 	//
 	//	Description: pulumi.String(fmt.Sprintf("%s Database", config.Mongo.Name)),
@@ -93,6 +102,7 @@ func CreatePersistent(ctx *pulumi.Context, config PersistentConfig) (PersistentD
 	return PersistentData{
 		DdbArticleTable:    ddbTableArticleRef,
 		S3ArticleDomBucket: s3ArticleDomBucket,
+		S3ArticleAnalyticsBucket: s3ArticleAnalyticsBucket,
 		// MongoDbArticleAmi:       mongoDbAmi,
 	}, nil
 }
@@ -100,6 +110,7 @@ func CreatePersistent(ctx *pulumi.Context, config PersistentConfig) (PersistentD
 type PersistentConfig struct {
 	DdbArticleTableName    string
 	S3BucketArticleDomName string
+	S3BucketArticleAnalyticsName string
 	// Mongo   PersistentMongoConfig
 }
 
@@ -114,5 +125,6 @@ type PersistentConfig struct {
 type PersistentData struct {
 	DdbArticleTable    *dynamodb.Table
 	S3ArticleDomBucket *s3.Bucket
+	S3ArticleAnalyticsBucket *s3.Bucket
 	// MongoDbArticleAmi *ec2.Ami
 }

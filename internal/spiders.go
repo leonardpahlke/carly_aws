@@ -67,17 +67,42 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 		return SpidersData{}, err
 	}
 
-	_, err = iam.NewRolePolicy(ctx, pkg.GetResourceName("s3-log-policy"), &iam.RolePolicyArgs{
+	_, err = iam.NewRolePolicy(ctx, pkg.GetResourceName("s3-bucket-dom-put-policy"), &iam.RolePolicyArgs{
 		Role: spiderDownloaderRole.Name,
-		Policy: pulumi.String(`{
+		Policy: pulumi.Sprintf(`{
                 "Version": "2012-10-17",
                 "Statement": [{
                     "Effect": "Allow",
                     "Action": "s3:PutObject",
-                    "Resource": "arn:aws:s3:::carly-dev-bucket-article-dom-store/*"
+                    "Resource": "%s/*"
                 }]
-            }`),
+            }`, config.ArticleBucket.Arn),
 	})
+
+	_, err = iam.NewRolePolicy(ctx, pkg.GetResourceName("s3-bucket-analytics-get-policy"), &iam.RolePolicyArgs{
+		Role: spiderMlRole.Name,
+		Policy: pulumi.Sprintf(`{
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "%s/*"
+                }]
+            }`, config.ArticleBucketAnalytics.Arn),
+	})
+
+	_, err = iam.NewRolePolicy(ctx, pkg.GetResourceName("s3-bucket-dom-put-policy"), &iam.RolePolicyArgs{
+		Role: spiderMlRole.Name,
+		Policy: pulumi.Sprintf(`{
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Action": "s3:PutObject",
+                    "Resource": "%s/*"
+                }]
+            }`, config.ArticleBucketAnalytics.Arn),
+	})
+
 
 
 	if err != nil {
@@ -150,6 +175,7 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 		LogPolicy: logPolicySpiderMl,
 		Env: pulumi.StringMap{
 			pkg.EnvSpiderName: pulumi.String(pkg.SpiderNameMl),
+			pkg.EnvArticleBucketAnalytics: config.ArticleBucketAnalytics.Bucket,
 		},
 		HandlerFolder: LambdaSpiderMlFolderName,
 		Timeout:       pkg.DefaultLambdaTimeout,
@@ -198,19 +224,20 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 
 	return SpidersData{
 		LambdaSpiderMl:         *lambdaSpiderMl,
-		LambdaSpiderTazParser:  *lambdaSpiderParser,
+		LambdaSpiderParser:     *lambdaSpiderParser,
 		LambdaSpiderDownloader: *lambdaSpiderDownloader,
 	}, nil
 }
 
 type SpidersConfig struct {
 	ArticleBucket s3.Bucket
+	ArticleBucketAnalytics s3.Bucket
 	ArticleTable  dynamodb.Table
 	NetworkData   NetworkData
 }
 
 type SpidersData struct {
 	LambdaSpiderMl         lambda.Function
-	LambdaSpiderTazParser  lambda.Function
+	LambdaSpiderParser     lambda.Function
 	LambdaSpiderDownloader lambda.Function
 }

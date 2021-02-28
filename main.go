@@ -19,6 +19,7 @@ func main() {
 			internal.PersistentConfig{
 				DdbArticleTableName:    "ddbArticleTableName",
 				S3BucketArticleDomName: "bucket-article-dom-store",
+				S3BucketArticleAnalyticsName: "bucket-article-analytics-store",
 			},
 		)
 		if err != nil {
@@ -46,6 +47,7 @@ func main() {
 		// Spiders - Lambdas
 		_, err = internal.CreateSpiders(ctx, internal.SpidersConfig{
 			ArticleBucket: *persistentData.S3ArticleDomBucket,
+			ArticleBucketAnalytics: *persistentData.S3ArticleAnalyticsBucket,
 			ArticleTable:  *persistentData.DdbArticleTable,
 			NetworkData:   networkData,
 		})

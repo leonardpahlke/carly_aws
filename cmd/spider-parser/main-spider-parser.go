@@ -30,9 +30,9 @@ func main() {
 	}
 
 	testArticles := []string{
-		// pkg.NewspaperNameFrankfurterRundschau,
-		pkg.NewspaperNameZeitOnline,
-		// pkg.NewspaperNameTAZ,
+		pkg.NewspaperNameFrankfurterRundschau,
+		// pkg.NewspaperNameZeitOnline,
+		pkg.NewspaperNameTAZ,
 	}
 
 	testArticleUrls := map[string][]string{
