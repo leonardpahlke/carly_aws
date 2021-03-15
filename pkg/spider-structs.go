@@ -1,7 +1,5 @@
 package pkg
 
-import "github.com/aws/aws-sdk-go/service/comprehend"
-
 const EnvSpiderName = "NAME"
 const EnvArticleBucket = "ARTICLE_BUCKET"
 const EnvArticleBucketAnalytics = "ARTICLE_BUCKET_ANALYTICS"
@@ -12,6 +10,7 @@ const EnvLogLevel = "LOG_LEVEL"
 const SpiderNameParser = "SpiderParser"
 const SpiderNameMl = "SpiderMl"
 const SpiderNameDownloader = "SpiderDownloader"
+const SpiderNameTranslator = "SpiderTranslator"
 
 // Downloader
 type SpiderDownloaderEvent struct {
@@ -45,30 +44,24 @@ type SpiderParserResponse struct {
 
 // ML
 type SpiderMLEvent struct {
-	ArticleReference  string            `json:"article_reference"`
-	Newspaper         string            `json:"newspaper"`
-	ArticleText       string            `json:"article_text"`
-	ArticleAttributes map[string]string `json:"article_attributes"`
+	ArticleReference string `json:"article_reference"`
+	Newspaper        string `json:"newspaper"`
+	ArticleText      string `json:"article_text"`
 }
 type SpiderMLResponse struct {
-	ArticleReference  string            `json:"article_reference"`
-	Newspaper         string            `json:"newspaper"`
-	ArticleText       string            `json:"article_text"`
-	ArticleAttributes map[string]string `json:"article_attributes"`
-}
-
-// document structure stored in s3 bucket
-type SpiderMLTextDocument struct {
 	ArticleReference string `json:"article_reference"`
-	ArticleText      string `json:"article_text"`
-	Language         string `json:"language"`
 	Newspaper        string `json:"newspaper"`
+	S3ArticleFileUrl string `json:"s3_article_file_url"`
 }
 
-// document to store comprehend analytics results
-type SpiderMLComprehendDocument struct {
-	KeyPhrases     []*comprehend.KeyPhrase    `json:"key_phrases"`
-	Entities       []*comprehend.Entity       `json:"entities"`
-	Sentiment      *string                    `json:"sentiment"`
-	SentimentScore *comprehend.SentimentScore `json:"sentiment_score"`
+// Translator
+type SpiderTranslatorEvent struct {
+	ArticleReference string `json:"article_reference"`
+	Newspaper        string `json:"newspaper"`
+	ArticleText      string `json:"article_text"`
+}
+type SpiderTranslatorResponse struct {
+	ArticleReference string `json:"article_reference"`
+	Newspaper        string `json:"newspaper"`
+	ArticleText      string `json:"article_text"`
 }

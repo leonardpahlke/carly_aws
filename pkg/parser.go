@@ -2,12 +2,13 @@ package pkg
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/html"
 	"io"
 	"strings"
+
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/html"
 )
 
 // handler is a simple function that takes a string and does a ToUpper.
@@ -59,7 +60,6 @@ func ParseArticle(request ArticleParseRequest) (ArticleParseResponse, error) {
 	}, nil
 }
 
-
 func ParseDomElement(htmlDom string, element string, requiredAttribute []html.Attribute) (string, error) {
 	doc, _ := html.Parse(strings.NewReader(htmlDom))
 	bn, err := getElement(doc, element, requiredAttribute)
@@ -69,7 +69,6 @@ func ParseDomElement(htmlDom string, element string, requiredAttribute []html.At
 	log.Info(bn.Attr)
 	return renderNode(bn), nil
 }
-
 
 func getElement(doc *html.Node, element string, requiredAttribute []html.Attribute) (*html.Node, error) {
 	var elementNode *html.Node
@@ -87,7 +86,7 @@ func getElement(doc *html.Node, element string, requiredAttribute []html.Attribu
 	if elementNode != nil {
 		return elementNode, nil
 	}
-	return nil, errors.New(fmt.Sprintf("Missing <%s> in the node tree", element))
+	return nil, fmt.Errorf("missing <%s> in the node tree", element)
 }
 
 func renderNode(n *html.Node) string {
@@ -125,4 +124,21 @@ type ArticleParseRequest struct {
 
 type ArticleParseResponse struct {
 	ArticleText string
+}
+
+const RFC_5646_GERMAN = "de"
+const RFC_5646_ENGLISH = "en"
+
+type StoreFileMetaStruct struct {
+	SpiderName       string
+	BucketName       string
+	ArticleReference string
+	Newspaper        string
+	Uploader         s3manager.Uploader
+}
+
+type StoreFileStruct struct {
+	Filename   string
+	FileEnding string
+	File       string
 }

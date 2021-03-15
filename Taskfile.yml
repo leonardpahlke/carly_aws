@@ -20,6 +20,7 @@ tasks:
       - task: build-spider-downloader
       - task: build-spider-ml
       - task: build-spider-parser
+      - task: build-spider-translator
       - echo Spider code successfully compiled
 
   build-spider-downloader:
@@ -33,6 +34,14 @@ tasks:
   build-spider-ml:
     vars:
       NAME: spider-ml
+    cmds:
+      - GOOS=linux go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}
+      - zip -jrm {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
+    silent: true
+
+  build-spider-translator:
+    vars:
+      NAME: spider-translator
     cmds:
       - GOOS=linux go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}
       - zip -jrm {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler

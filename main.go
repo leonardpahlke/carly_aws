@@ -2,6 +2,7 @@ package main
 
 import (
 	"carly_aws/internal"
+
 	"github.com/pulumi/pulumi/sdk/v2/go/pulumi"
 )
 
@@ -14,14 +15,7 @@ func main() {
 		}
 
 		// PERSISTENT - DynamoDB DB, Document DB
-		persistentData, err := internal.CreatePersistent(
-			ctx,
-			internal.PersistentConfig{
-				DdbArticleTableName:    "ddbArticleTableName",
-				S3BucketArticleDomName: "bucket-article-dom-store",
-				S3BucketArticleAnalyticsName: "bucket-article-analytics-store",
-			},
-		)
+		persistentData, err := internal.CreatePersistent(ctx, internal.PersistentConfig{})
 		if err != nil {
 			return err
 		}
@@ -46,10 +40,10 @@ func main() {
 
 		// Spiders - Lambdas
 		_, err = internal.CreateSpiders(ctx, internal.SpidersConfig{
-			ArticleBucket: *persistentData.S3ArticleDomBucket,
+			ArticleBucket:          *persistentData.S3ArticleDomBucket,
 			ArticleBucketAnalytics: *persistentData.S3ArticleAnalyticsBucket,
-			ArticleTable:  *persistentData.DdbArticleTable,
-			NetworkData:   networkData,
+			ArticleTable:           *persistentData.DdbArticleTable,
+			NetworkData:            networkData,
 		})
 		if err != nil {
 			return err

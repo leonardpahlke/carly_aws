@@ -2,6 +2,7 @@ package internal
 
 import (
 	"carly_aws/pkg"
+
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/dynamodb"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/s3"
 	"github.com/pulumi/pulumi/sdk/v2/go/pulumi"
@@ -19,7 +20,7 @@ func CreatePersistent(ctx *pulumi.Context, config PersistentConfig) (PersistentD
 	//}
 
 	// Article - DynamoDB
-	ddbTableArticleRef, err := dynamodb.NewTable(ctx, pkg.GetResourceName(config.DdbArticleTableName), &dynamodb.TableArgs{
+	ddbTableArticleRef, err := dynamodb.NewTable(ctx, pkg.GetResourceName(pkg.DdbArticleTableName), &dynamodb.TableArgs{
 		Attributes: dynamodb.TableAttributeArray{
 			&dynamodb.TableAttributeArgs{
 				Name: pulumi.String(pkg.DdbPrimaryKeyArticleRef),
@@ -34,26 +35,26 @@ func CreatePersistent(ctx *pulumi.Context, config PersistentConfig) (PersistentD
 		RangeKey:      pulumi.String(pkg.DdbSortKeyNewspaper),
 		ReadCapacity:  pulumi.Int(1),
 		WriteCapacity: pulumi.Int(1),
-		Name:          pulumi.String(pkg.GetResourceName(config.DdbArticleTableName)),
-		Tags:          pkg.GetTags(config.DdbArticleTableName),
+		Name:          pulumi.String(pkg.GetResourceName(pkg.DdbArticleTableName)),
+		Tags:          pkg.GetTags(pkg.DdbArticleTableName),
 	})
 	if err != nil {
 		return PersistentData{}, err
 	}
 
 	// Article Dom S3-Bucket
-	s3ArticleDomBucket, err := s3.NewBucket(ctx, pkg.GetResourceName(config.S3BucketArticleDomName), &s3.BucketArgs{
-		Bucket: pulumi.String(pkg.GetResourceName(config.S3BucketArticleDomName)),
-		Tags:   pkg.GetTags(config.S3BucketArticleDomName),
+	s3ArticleDomBucket, err := s3.NewBucket(ctx, pkg.GetResourceName(pkg.S3BucketArticleDomName), &s3.BucketArgs{
+		Bucket: pulumi.String(pkg.GetResourceName(pkg.S3BucketArticleDomName)),
+		Tags:   pkg.GetTags(pkg.S3BucketArticleDomName),
 	})
 	if err != nil {
 		return PersistentData{}, err
 	}
 
 	// Article Analytics S3-Bucket
-	s3ArticleAnalyticsBucket, err := s3.NewBucket(ctx, pkg.GetResourceName(config.S3BucketArticleAnalyticsName), &s3.BucketArgs{
-		Bucket: pulumi.String(pkg.GetResourceName(config.S3BucketArticleAnalyticsName)),
-		Tags:   pkg.GetTags(config.S3BucketArticleAnalyticsName),
+	s3ArticleAnalyticsBucket, err := s3.NewBucket(ctx, pkg.GetResourceName(pkg.S3BucketArticleAnalyticsName), &s3.BucketArgs{
+		Bucket: pulumi.String(pkg.GetResourceName(pkg.S3BucketArticleAnalyticsName)),
+		Tags:   pkg.GetTags(pkg.S3BucketArticleAnalyticsName),
 	})
 	if err != nil {
 		return PersistentData{}, err
@@ -100,17 +101,17 @@ func CreatePersistent(ctx *pulumi.Context, config PersistentConfig) (PersistentD
 	//}
 
 	return PersistentData{
-		DdbArticleTable:    ddbTableArticleRef,
-		S3ArticleDomBucket: s3ArticleDomBucket,
+		DdbArticleTable:          ddbTableArticleRef,
+		S3ArticleDomBucket:       s3ArticleDomBucket,
 		S3ArticleAnalyticsBucket: s3ArticleAnalyticsBucket,
 		// MongoDbArticleAmi:       mongoDbAmi,
 	}, nil
 }
 
 type PersistentConfig struct {
-	DdbArticleTableName    string
-	S3BucketArticleDomName string
-	S3BucketArticleAnalyticsName string
+	// DdbArticleTableName    string
+	// S3BucketArticleDomName string
+	// S3BucketArticleAnalyticsName string
 	// Mongo   PersistentMongoConfig
 }
 
@@ -123,8 +124,8 @@ type PersistentConfig struct {
 //}
 
 type PersistentData struct {
-	DdbArticleTable    *dynamodb.Table
-	S3ArticleDomBucket *s3.Bucket
+	DdbArticleTable          *dynamodb.Table
+	S3ArticleDomBucket       *s3.Bucket
 	S3ArticleAnalyticsBucket *s3.Bucket
 	// MongoDbArticleAmi *ec2.Ami
 }

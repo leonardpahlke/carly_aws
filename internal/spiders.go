@@ -2,6 +2,8 @@ package internal
 
 import (
 	"carly_aws/pkg"
+	"fmt"
+
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/dynamodb"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/lambda"
@@ -11,177 +13,120 @@ import (
 
 const LambdaSpiderMlFolderName = "spider-ml"
 const LambdaSpiderParserFolderName = "spider-parser"
+const LambdaSpiderTranslatorFolderName = "spider-translator"
 const LambdaSpiderDownloaderFolderName = "spider-downloader"
 
 func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, error) {
 
-	// spiderDownloaderRole
-	spiderDownloaderRole, err := iam.NewRole(ctx, pkg.GetResourceName(LambdaSpiderDownloaderFolderName + "-role"), &iam.RoleArgs{
-		AssumeRolePolicy: pulumi.String(`{
-				"Version": "2012-10-17",
-				"Statement": [{
-					"Sid": "",
-					"Effect": "Allow",
-					"Principal": {
-						"Service": "lambda.amazonaws.com"
-					},
-					"Action": "sts:AssumeRole"
-				}]
-			}`),
-	})
-	if err != nil {
-		return SpidersData{}, err
-	}
+	/*
+		Create Roles for Spiders
+	*/
+	// Policies
+	policyWriteLogs := pulumi.String(`{
+		"Version": "2012-10-17",
+		"Statement": [{
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogGroup",
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": "arn:aws:logs:*:*:*"
+		}]
+	}`)
+	/*
+		pkg.IamCreatePolicyString_Actions_Resource(
+			pulumi.StringArray{
+				pulumi.String("logs:CreateLogGroup"),
+				pulumi.String("logs:CreateLogStream"),
+				pulumi.String("logs:PutLogEvents"),
+			},
+			pulumi.String("arn:aws:logs:*:*:*"),
+		)
+	*/
 
-	spiderParserRole, err := iam.NewRole(ctx, pkg.GetResourceName("spider-parser-role"), &iam.RoleArgs{
-		AssumeRolePolicy: pulumi.String(`{
-				"Version": "2012-10-17",
-				"Statement": [{
-					"Sid": "",
-					"Effect": "Allow",
-					"Principal": {
-						"Service": "lambda.amazonaws.com"
-					},
-					"Action": "sts:AssumeRole"
-				}]
-			}`),
-	})
-	if err != nil {
-		return SpidersData{}, err
-	}
-
-	spiderMlRole, err := iam.NewRole(ctx, pkg.GetResourceName(LambdaSpiderMlFolderName + "-role"), &iam.RoleArgs{
-		AssumeRolePolicy: pulumi.String(`{
-				"Version": "2012-10-17",
-				"Statement": [{
-					"Sid": "",
-					"Effect": "Allow",
-					"Principal": {
-						"Service": "lambda.amazonaws.com"
-					},
-					"Action": "sts:AssumeRole"
-				}]
-			}`),
-	})
-	if err != nil {
-		return SpidersData{}, err
-	}
-
-	_, err = iam.NewRolePolicy(ctx, pkg.GetResourceName("s3-bucket-dom-put-policy"), &iam.RolePolicyArgs{
-		Role: spiderDownloaderRole.Name,
-		Policy: pulumi.Sprintf(`{
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Action": "s3:PutObject",
-                    "Resource": "%s/*"
-                }]
-            }`, config.ArticleBucket.Arn),
-	})
-
-	_, err = iam.NewRolePolicy(ctx, pkg.GetResourceName("s3-bucket-analytics-get-policy"), &iam.RolePolicyArgs{
-		Role: spiderMlRole.Name,
-		Policy: pulumi.Sprintf(`{
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Action": "s3:GetObject",
-                    "Resource": "%s/*"
-                }]
-            }`, config.ArticleBucketAnalytics.Arn),
-	})
-
-	_, err = iam.NewRolePolicy(ctx, pkg.GetResourceName("s3-bucket-dom-put-policy"), &iam.RolePolicyArgs{
-		Role: spiderMlRole.Name,
-		Policy: pulumi.Sprintf(`{
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Action": "s3:PutObject",
-                    "Resource": "%s/*"
-                }]
-            }`, config.ArticleBucketAnalytics.Arn),
-	})
-
-
-
-	if err != nil {
-		return SpidersData{}, err
-	}
-
-	// Attach a policy to allow writing logs to CloudWatch
-	logPolicySpiderMl, err := iam.NewRolePolicy(ctx, pkg.GetResourceName(LambdaSpiderMlFolderName + "-log-policy"), &iam.RolePolicyArgs{
-		Role: spiderMlRole.Name,
-		Policy: pulumi.String(`{
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Action": [
-                        "logs:CreateLogGroup",
-                        "logs:CreateLogStream",
-                        "logs:PutLogEvents"
-                    ],
-                    "Resource": "arn:aws:logs:*:*:*"
-                }]
-            }`),
-	})
-	if err != nil {
-		return SpidersData{}, err
-	}
-
-	// Attach a policy to allow writing logs to CloudWatch
-	logPolicySpiderParser, err := iam.NewRolePolicy(ctx, pkg.GetResourceName("spider-parser-log-policy"), &iam.RolePolicyArgs{
-		Role: spiderParserRole.Name,
-		Policy: pulumi.String(`{
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Action": [
-                        "logs:CreateLogGroup",
-                        "logs:CreateLogStream",
-                        "logs:PutLogEvents"
-                    ],
-                    "Resource": "arn:aws:logs:*:*:*"
-                }]
-            }`),
-	})
-	if err != nil {
-		return SpidersData{}, err
-	}
-
-	// Attach a policy to spider-downloader to allow to store objects in article s3 bucket
-	logPolicySpiderDownloader, err := iam.NewRolePolicy(ctx, pkg.GetResourceName(LambdaSpiderDownloaderFolderName + "-log-policy"), &iam.RolePolicyArgs{
-		Role: spiderDownloaderRole.Name,
-		Policy: pulumi.String(`{
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Action": [
-                        "logs:CreateLogGroup",
-                        "logs:CreateLogStream",
-                        "logs:PutLogEvents"
-                    ],
-                    "Resource": "arn:aws:logs:*:*:*"
-                }]
-            }`),
-	})
-	if err != nil {
-		return SpidersData{}, err
-	}
-
-	// SPIDER-ML
-	lambdaSpiderMl, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
-		Role:      spiderMlRole,
-		LogPolicy: logPolicySpiderMl,
-		Env: pulumi.StringMap{
-			pkg.EnvSpiderName: pulumi.String(pkg.SpiderNameMl),
-			pkg.EnvArticleBucketAnalytics: config.ArticleBucketAnalytics.Bucket,
+	// Roles
+	// Spider-Downloader
+	spiderDownloaderRole, spiderDownloaderLogPolicy := createSpiderRolesAndPolicies(
+		ctx,
+		LambdaSpiderDownloaderFolderName,
+		policyWriteLogs,
+		iam.RoleInlinePolicyArray{
+			pkg.CreateInlinePolicyStatement(
+				"article-dom-bucket-s3-put-obj",
+				pulumi.Sprintf(`{
+					"Version": "2012-10-17",
+					"Statement": [{
+						"Effect": "Allow",
+						"Action": "s3:PutObject",
+						"Resource": "%s/*"
+					}]
+				}`, config.ArticleBucket.Arn),
+			),
 		},
-		HandlerFolder: LambdaSpiderMlFolderName,
+	)
+
+	// Spider-Parser
+	spiderParserRole, spiderParserLogPolicy := createSpiderRolesAndPolicies(
+		ctx,
+		LambdaSpiderParserFolderName,
+		policyWriteLogs,
+		iam.RoleInlinePolicyArray{},
+	)
+
+	// Spider-Translator
+	spiderTranslatorRole, spiderTranslatorLogPolicy := createSpiderRolesAndPolicies(
+		ctx,
+		LambdaSpiderTranslatorFolderName,
+		policyWriteLogs,
+		iam.RoleInlinePolicyArray{},
+	)
+
+	// Spider-ML
+	spiderMlRole, spiderMlLogPolicy := createSpiderRolesAndPolicies(
+		ctx,
+		LambdaSpiderMlFolderName,
+		policyWriteLogs,
+		iam.RoleInlinePolicyArray{
+			pkg.CreateInlinePolicyStatement(
+				"article-analytics-bucket-s3-get",
+				pulumi.Sprintf(`{
+					"Version": "2012-10-17",
+					"Statement": [{
+						"Effect": "Allow",
+						"Action": "s3:GetObject",
+						"Resource": "%s/*"
+					}]
+				}`, config.ArticleBucketAnalytics.Arn),
+			),
+			pkg.CreateInlinePolicyStatement(
+				"article-analytics-bucket-s3-put",
+				pulumi.Sprintf(`{
+					"Version": "2012-10-17",
+					"Statement": [{
+						"Effect": "Allow",
+						"Action": "s3:PutObject",
+						"Resource": "%s/*"
+					}]
+				}`, config.ArticleBucketAnalytics.Arn),
+			),
+		},
+	)
+
+	/*
+		Lambda functions
+	*/
+
+	// SPIDER-DOWNLOADER
+	lambdaSpiderDownloader, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
+		Role:      spiderDownloaderRole,
+		LogPolicy: spiderDownloaderLogPolicy,
+		Env: pulumi.StringMap{
+			pkg.EnvSpiderName:    pulumi.String(pkg.SpiderNameDownloader),
+			pkg.EnvArticleBucket: config.ArticleBucket.Bucket,
+		},
+		HandlerFolder: LambdaSpiderDownloaderFolderName,
 		Timeout:       pkg.DefaultLambdaTimeout,
-		//VpcId:           config.NetworkData.Vpc.ID(),
-		//SecurityGroupId: config.NetworkData.CrawlerSecurityGroup.ID(),
-		//SubnetId:        config.NetworkData.PublicSubnet.ID(),
 	})
 	if err != nil {
 		return SpidersData{}, err
@@ -190,33 +135,43 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 	// SPIDER-PARSER
 	lambdaSpiderParser, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
 		Role:      spiderParserRole,
-		LogPolicy: logPolicySpiderParser,
+		LogPolicy: spiderParserLogPolicy,
 		Env: pulumi.StringMap{
 			pkg.EnvSpiderName: pulumi.String(pkg.SpiderNameParser),
 		},
 		HandlerFolder: LambdaSpiderParserFolderName,
 		Timeout:       pkg.DefaultLambdaTimeout,
-		//VpcId:           config.NetworkData.Vpc.ID(),
-		//SecurityGroupId: config.NetworkData.CrawlerSecurityGroup.ID(),
-		//SubnetId:        config.NetworkData.PublicSubnet.ID(),
 	})
 	if err != nil {
 		return SpidersData{}, err
 	}
 
-	// SPIDER-DOWNLOADER
-	lambdaSpiderDownloader, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
-		Role:      spiderDownloaderRole,
-		LogPolicy: logPolicySpiderDownloader,
+	// SPIDER-TRANSLATOR
+	lambdaSpiderTranslator, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
+		Role:      spiderTranslatorRole,
+		LogPolicy: spiderTranslatorLogPolicy,
 		Env: pulumi.StringMap{
-			pkg.EnvSpiderName:    pulumi.String(pkg.SpiderNameDownloader),
-			pkg.EnvArticleBucket: config.ArticleBucket.Bucket,
+			pkg.EnvSpiderName:             pulumi.String(pkg.SpiderNameTranslator),
+			pkg.EnvArticleBucketAnalytics: config.ArticleBucketAnalytics.Bucket,
+			pkg.EnvSpiderRoleArn:          spiderTranslatorRole.Arn,
 		},
-		HandlerFolder: LambdaSpiderDownloaderFolderName,
+		HandlerFolder: LambdaSpiderTranslatorFolderName,
 		Timeout:       pkg.DefaultLambdaTimeout,
-		//VpcId:           config.NetworkData.Vpc.ID(),
-		//SecurityGroupId: config.NetworkData.CrawlerSecurityGroup.ID(),
-		//SubnetId:        config.NetworkData.PublicSubnet.ID(),
+	})
+	if err != nil {
+		return SpidersData{}, err
+	}
+
+	// SPIDER-ML
+	lambdaSpiderMl, err := pkg.BuildLambdaFunction(ctx, pkg.BuildLambdaConfig{
+		Role:      spiderMlRole,
+		LogPolicy: spiderMlLogPolicy,
+		Env: pulumi.StringMap{
+			pkg.EnvSpiderName:             pulumi.String(pkg.SpiderNameMl),
+			pkg.EnvArticleBucketAnalytics: config.ArticleBucketAnalytics.Bucket,
+		},
+		HandlerFolder: LambdaSpiderMlFolderName,
+		Timeout:       pkg.DefaultLambdaTimeout,
 	})
 	if err != nil {
 		return SpidersData{}, err
@@ -226,18 +181,43 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 		LambdaSpiderMl:         *lambdaSpiderMl,
 		LambdaSpiderParser:     *lambdaSpiderParser,
 		LambdaSpiderDownloader: *lambdaSpiderDownloader,
+		LambdaSpiderTranslator: *lambdaSpiderTranslator,
 	}, nil
 }
 
 type SpidersConfig struct {
-	ArticleBucket s3.Bucket
+	ArticleBucket          s3.Bucket
 	ArticleBucketAnalytics s3.Bucket
-	ArticleTable  dynamodb.Table
-	NetworkData   NetworkData
+	ArticleTable           dynamodb.Table
+	NetworkData            NetworkData
 }
 
 type SpidersData struct {
 	LambdaSpiderMl         lambda.Function
 	LambdaSpiderParser     lambda.Function
 	LambdaSpiderDownloader lambda.Function
+	LambdaSpiderTranslator lambda.Function
+}
+
+func getRolePolicyForLogging(ctx *pulumi.Context, spiderName string, policyDocument pulumi.String, role iam.Role) *iam.RolePolicy {
+	logPolicy, err := iam.NewRolePolicy(ctx, pkg.GetResourceName(fmt.Sprintf("%s-log-policy", spiderName)), &iam.RolePolicyArgs{
+		Role:   role.Name,
+		Policy: policyDocument,
+	})
+	if err != nil {
+		pkg.LogError("GetRolePolicyForLogging", "could not create iam.NewRolePolicy for lambda function", err)
+	}
+	return logPolicy
+}
+
+func createSpiderRolesAndPolicies(ctx *pulumi.Context, spiderName string, policyToWriteLogs pulumi.String, inlinePolicyStatements iam.RoleInlinePolicyArray) (*iam.Role, *iam.RolePolicy) {
+	policyAssumeLambda := pkg.IamCreatePolicyString_Assume_Policy(pkg.IamPolicy_Service_Lambda)
+	spiderRole := pkg.CreateRole(
+		ctx,
+		fmt.Sprintf("%s-role", spiderName),
+		policyAssumeLambda,
+		inlinePolicyStatements,
+	)
+	spiderLogPolicy := getRolePolicyForLogging(ctx, spiderName, policyToWriteLogs, *spiderRole)
+	return spiderRole, spiderLogPolicy
 }

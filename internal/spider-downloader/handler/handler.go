@@ -3,22 +3,23 @@ package spider_downloader
 import (
 	"carly_aws/pkg"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-	"net/http"
-	"os"
 )
 
 /*
-Lambda SpiderDownloader
-1. set up lambda clients
-2. create file to store article html
-3. retrieve article html from article website
-4. store html to local file
-5. upload file to s3
+	Lambda SpiderDownloader
+	1. set up lambda clients
+	2. create file to store article html
+	3. retrieve article html from article website
+	4. store html to local file
+	5. upload file to s3
 */
 
 // Handler - gets executed when lambda is run
@@ -76,7 +77,7 @@ func Handler(event pkg.SpiderDownloaderEvent) (pkg.SpiderDownloaderResponse, err
 	// 5. Upload file to S3
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(s3BucketName),
-		Key:    aws.String(fmt.Sprintf("%s/%s", event.Newspaper, fileName)),
+		Key:    aws.String(fmt.Sprintf("%s/%s/%s", event.Newspaper, event.ArticleReference, fileName)),
 		Body:   f,
 	})
 	if err != nil {
@@ -88,7 +89,7 @@ func Handler(event pkg.SpiderDownloaderEvent) (pkg.SpiderDownloaderResponse, err
 	log.Infof("Written bytes to file %x\n", l)
 
 	return pkg.SpiderDownloaderResponse{
-		ArticleDom: string(html),
+		ArticleDom:       string(html),
 		ArticleReference: event.ArticleReference,
 		ArticleUrl:       event.ArticleUrl,
 		Newspaper:        event.Newspaper,

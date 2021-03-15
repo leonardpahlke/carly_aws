@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+
+	sdk_aws "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/lambda"
 	"github.com/pulumi/pulumi/sdk/v2/go/pulumi"
-	"os"
-	"strings"
 )
 
 const ProjectName = "carly"
@@ -49,6 +52,10 @@ func ListContains(element string, list []string) bool {
 		}
 	}
 	return false
+}
+
+func GetBucketFileName(bucketName string, newspaper string, filename string, fileEnding string) string {
+	return fmt.Sprintf("%s/%s/%s.%s", bucketName, newspaper, filename, fileEnding)
 }
 
 func CheckEnvNotEmpty(key string) (string, bool) {
@@ -104,10 +111,6 @@ type BuildLambdaConfig struct {
 	Env           pulumi.StringMap
 	HandlerFolder string
 	Timeout       int
-	// network configuration
-	//VpcId pulumi.IDOutput
-	//SecurityGroupId pulumi.IDOutput
-	//SubnetId pulumi.IDOutput
 }
 
 func CreateKeyValuePairs(m map[string]string) string {
@@ -126,7 +129,6 @@ func CreateKeyValuePairs(m map[string]string) string {
 	return b.String()
 }
 
-
 func MarshalStruct(structIn interface{}) []byte {
 	b, err := json.Marshal(structIn)
 	if err != nil {
@@ -134,4 +136,55 @@ func MarshalStruct(structIn interface{}) []byte {
 		return nil
 	}
 	return b
+}
+
+// store file in article analytics bucket
+func StoreFileInArticleAnalyticsBucket(fileInfoIn StoreFileStruct, fileMetaIn StoreFileMetaStruct) *s3manager.UploadOutput {
+	result, err := fileMetaIn.Uploader.Upload(&s3manager.UploadInput{
+		Bucket: sdk_aws.String(fileMetaIn.BucketName),
+		Key: sdk_aws.String(fmt.Sprintf("%s/%s/%s.%s",
+			fileMetaIn.Newspaper,
+			fileMetaIn.ArticleReference,
+			fileInfoIn.Filename,
+			fileInfoIn.FileEnding)),
+		Body: strings.NewReader(fileInfoIn.File),
+	})
+	if err != nil {
+		LogError(fileMetaIn.SpiderName, "s3 upload error", err)
+		return &s3manager.UploadOutput{}
+	}
+	return result
+}
+
+func GetBucketKeyForAnalyticsBucket(newspaper string, articleReference string, fileName string, fileEnding string) string {
+	return fmt.Sprintf("%s/%s/%s.%s",
+		newspaper,
+		articleReference,
+		fileName,
+		fileEnding)
+}
+
+func GetBucketUriForKey(key string) string {
+	return fmt.Sprintf("s3://%s", key)
+}
+
+/*
+	result, err := uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String(s3BucketName),
+		Key:    aws.String(fmt.Sprintf("%s/%s", event.Newspaper, fileName)),
+		Body:   f,
+	})
+*/
+
+// clean string removes
+func TrimStringAry(inputStrings []string) []string {
+	var cleanedString []string
+	for _, str := range inputStrings {
+		str = strings.TrimSpace(str)
+		if str != "" {
+			cleanedString = append(cleanedString, str)
+		}
+	}
+	LogInfo("pkg.TrimStringAry", fmt.Sprintf("cleanedString.. %v", cleanedString))
+	return cleanedString
 }
