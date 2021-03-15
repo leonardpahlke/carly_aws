@@ -79,7 +79,30 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 		ctx,
 		LambdaSpiderTranslatorFolderName,
 		policyWriteLogs,
-		iam.RoleInlinePolicyArray{},
+		iam.RoleInlinePolicyArray{
+			pkg.CreateInlinePolicyStatement(
+				"article-analytics-bucket-s3-get",
+				pulumi.Sprintf(`{
+					"Version": "2012-10-17",
+					"Statement": [{
+						"Effect": "Allow",
+						"Action": "translate:TranslateText",
+						"Resource": "%s/*"
+					}]
+				}`, config.ArticleBucketAnalytics.Arn),
+			),
+			pkg.CreateInlinePolicyStatement(
+				"article-analytics-bucket-s3-get",
+				pulumi.Sprintf(`{
+					"Version": "2012-10-17",
+					"Statement": [{
+						"Effect": "Allow",
+						"Action": "s3:PutObject",
+						"Resource": "%s/*"
+					}]
+				}`, config.ArticleBucketAnalytics.Arn),
+			),
+		},
 	)
 
 	// Spider-ML
@@ -153,7 +176,6 @@ func CreateSpiders(ctx *pulumi.Context, config SpidersConfig) (SpidersData, erro
 		Env: pulumi.StringMap{
 			pkg.EnvSpiderName:             pulumi.String(pkg.SpiderNameTranslator),
 			pkg.EnvArticleBucketAnalytics: config.ArticleBucketAnalytics.Bucket,
-			pkg.EnvSpiderRoleArn:          spiderTranslatorRole.Arn,
 		},
 		HandlerFolder: LambdaSpiderTranslatorFolderName,
 		Timeout:       pkg.DefaultLambdaTimeout,

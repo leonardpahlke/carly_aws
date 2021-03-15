@@ -2,16 +2,12 @@ package spider_translator
 
 import (
 	"carly_aws/pkg"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/comprehend"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/translate"
 )
@@ -37,7 +33,6 @@ func Handler(request pkg.SpiderTranslatorEvent) (pkg.SpiderTranslatorResponse, e
 
 	spiderName, _ := pkg.CheckEnvNotEmpty(pkg.EnvSpiderName)
 	bucketNameAnalytics, _ := pkg.CheckEnvNotEmpty(pkg.EnvArticleBucketAnalytics)
-	spiderRoleArn, _ := pkg.CheckEnvNotEmpty(pkg.EnvSpiderRoleArn)
 	mySession := session.Must(session.NewSession())
 
 	/*
@@ -65,7 +60,7 @@ func Handler(request pkg.SpiderTranslatorEvent) (pkg.SpiderTranslatorResponse, e
 	}
 
 	/*
-		2. --- create json document of the article to store it
+		2. --- create json article document of the article to store it
 	*/
 
 	// create json document - SpiderMLTextDocument
@@ -75,9 +70,10 @@ func Handler(request pkg.SpiderTranslatorEvent) (pkg.SpiderTranslatorResponse, e
 		Language:         detectedLanguage,
 		Newspaper:        request.Newspaper,
 	})
+	strSpiderMLTextDocumentJsonByteArray := string(spiderMLTextDocumentJsonByteArray)
 
 	/*
-		3. --- store document in s3 bucket
+		3. --- store article document in s3 bucket
 	*/
 
 	// Create a S3 client - to store the article text in the s3 bucket
@@ -88,7 +84,7 @@ func Handler(request pkg.SpiderTranslatorEvent) (pkg.SpiderTranslatorResponse, e
 	_, err = uploader.Upload(&s3manager.UploadInput{
 		Bucket: &bucketNameAnalytics,
 		Key:    &documentUploadS3Key,
-		Body:   strings.NewReader(string(spiderMLTextDocumentJsonByteArray)),
+		Body:   strings.NewReader(strSpiderMLTextDocumentJsonByteArray),
 	})
 	if err != nil {
 		pkg.LogError(spiderName, "s3 upload error", err)
@@ -103,32 +99,51 @@ func Handler(request pkg.SpiderTranslatorEvent) (pkg.SpiderTranslatorResponse, e
 
 		// Create a Translate client - to translate the text german -> english
 		clientTranslate := translate.New(mySession)
-		textContentType := "text/plain"
-
-		// create uri where to store the result document
 		targetTranslatedBucketKey := pkg.GetBucketFileName(bucketNameAnalytics, request.Newspaper, rfc5646English, "json")
-		targetTranslateBucketUri := pkg.GetBucketUriForKey(targetTranslatedBucketKey)
-		sourceTranslateBucketUri := pkg.GetBucketUriForKey(documentUploadS3Key)
 
-		textTranslationJob, err := clientTranslate.StartTextTranslationJob(&translate.StartTextTranslationJobInput{
-			DataAccessRoleArn: &spiderRoleArn,
-			InputDataConfig: &translate.InputDataConfig{
-				ContentType: &textContentType,
-				S3Uri:       &sourceTranslateBucketUri,
-			},
-			JobName: &request.ArticleReference,
-			OutputDataConfig: &translate.OutputDataConfig{
-				S3Uri: &targetTranslateBucketUri,
-			},
-			SourceLanguageCode:  &rfc5646German,
-			TargetLanguageCodes: []*string{&rfc5646English},
+		// translate text to english
+		textTranslationResult, err := clientTranslate.Text(&translate.TextInput{
+			SourceLanguageCode: &rfc5646German,
+			TargetLanguageCode: &rfc5646English,
+			Text:               &strSpiderMLTextDocumentJsonByteArray,
 		})
 		if err != nil {
-			pkg.LogError(spiderName, "clientTranslate.StartTextTranslationJob error", err)
+			pkg.LogError(spiderName, "clientTranslate.Text error", err)
 		}
-		pkg.LogInfo(spiderName, fmt.Sprintf("TextTranslationJob status response: %s", *textTranslationJob.JobStatus))
 
-		// create downlaoder manager to get translated article text
+		// format translated text
+		translatedText := *textTranslationResult.TranslatedText
+		translatedText = strings.ReplaceAll(translatedText, "\\ n", "")
+		translatedText = strings.ReplaceAll(translatedText, "  ", " ")
+
+		pkg.LogInfo(spiderName, fmt.Sprintf("Text translated.. %s", translatedText))
+
+		// upload translated text to s3
+		_, err = uploader.Upload(&s3manager.UploadInput{
+			Bucket: &bucketNameAnalytics,
+			Key:    &targetTranslatedBucketKey,
+			Body:   strings.NewReader(translatedText),
+		})
+		if err != nil {
+			pkg.LogError(spiderName, "s3 upload error", err)
+		}
+
+		return pkg.SpiderTranslatorResponse{
+			ArticleReference: request.ArticleReference,
+			Newspaper:        request.Newspaper,
+			ArticleText:      translatedText,
+		}, nil
+	}
+	return pkg.SpiderTranslatorResponse{
+		ArticleReference: request.ArticleReference,
+		Newspaper:        request.Newspaper,
+		ArticleText:      request.ArticleText,
+	}, nil
+}
+
+/* DOWNLOAD S3 File example
+
+// create downlaoder manager to get translated article text
 		downloader := s3manager.NewDownloader(mySession)
 
 		// Download the item from the bucket. If an error occurs, log it and exit.
@@ -164,17 +179,4 @@ func Handler(request pkg.SpiderTranslatorEvent) (pkg.SpiderTranslatorResponse, e
 		if err != nil {
 			pkg.LogError(spiderName, "json.Unmarshal unmarshal of translated file failed", err)
 		}
-
-		return pkg.SpiderTranslatorResponse{
-			ArticleReference: request.ArticleReference,
-			Newspaper:        request.Newspaper,
-			ArticleText:      downloadedFile.ArticleText,
-		}, nil
-	}
-
-	return pkg.SpiderTranslatorResponse{
-		ArticleReference: request.ArticleReference,
-		Newspaper:        request.Newspaper,
-		ArticleText:      request.ArticleText,
-	}, nil
-}
+*/

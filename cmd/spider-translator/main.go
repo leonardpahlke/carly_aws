@@ -15,7 +15,6 @@ func main() {
 	_ = os.Setenv("AWS_REGION", pkg.AWSDeployRegion)
 	_ = os.Setenv(pkg.EnvSpiderName, pkg.SpiderNameTranslator)
 	_ = os.Setenv(pkg.EnvLogLevel, strconv.Itoa(int(log.InfoLevel)))
-	_ = os.Setenv(pkg.EnvSpiderRoleArn, "arn:aws:iam::711303001971:role/carly-dev-spider-translator-role-463d2cf")
 	_ = os.Setenv(pkg.EnvArticleBucketAnalytics, "carly-dev-bucket-article-analytics-store")
 
 	pkg.LogInfo(localTestName, "Starting local translaor test")

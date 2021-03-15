@@ -1,8 +1,10 @@
 .idea/
 
-tmp/
+*/tmp/
+*/test/
 
 build/
+
 # Created by .ignore support plugin (hsz.mobi)
 ### JupyterNotebooks template
 # gitignore template for Jupyter Notebooks
