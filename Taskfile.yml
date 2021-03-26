@@ -1,55 +1,7 @@
 version: '3'
 
-vars:
-  INTERNAL_PATH: ./internal
-  BUILD_PATH: ./build
-
 tasks:
   deploy:
     desc: Deploy project to AWS
     cmds:
-      - task: prep
-      - echo "Preparation phase successfully completed"
       - pulumi up
-
-  prep:
-    desc: Prepare project for deployment
-    cmds:
-      - task: go-get-all-dependecies
-      - echo "Dependecies installed"
-
-  build-spider-downloader:
-    vars:
-      NAME: spider-downloader
-    cmds:
-      - GOOS=linux go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}
-      - zip -jrm {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
-    silent: true
-
-  build-spider-ml:
-    vars:
-      NAME: spider-ml
-    cmds:
-      - GOOS=linux go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}
-      - zip -jrm {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
-    silent: true
-
-  build-spider-translator:
-    vars:
-      NAME: spider-translator
-    cmds:
-      - GOOS=linux go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}
-      - zip -jrm {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
-    silent: true
-
-  build-spider-parser:
-    vars:
-      NAME: spider-parser
-    cmds:
-      - GOOS=linux go build -o {{.BUILD_PATH}}/{{.NAME}}/handler {{.INTERNAL_PATH}}/{{.NAME}}
-      - zip -jrm {{.BUILD_PATH}}/{{.NAME}}/handler.zip {{.BUILD_PATH}}/{{.NAME}}/handler
-    silent: true
-
-  go-get-all-dependecies:
-    cmds:
-      - go get -v all

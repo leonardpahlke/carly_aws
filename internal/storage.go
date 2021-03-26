@@ -37,7 +37,7 @@ func CreateStorage(ctx *pulumi.Context, config StorageConfig) (StorageData, erro
 	}
 
 	// Article Dom S3-Bucket
-	s3ArticleBucket := createSimpleBucket(ctx, pkg.S3BucketArticleDomName)
+	s3ArticleBucket := createSimpleBucket(ctx, "article-bucket")
 
 	// Lambda Code Bucket
 	s3LambdaCodeBucket := createSimpleBucket(ctx, StorageS3LambdaCode)

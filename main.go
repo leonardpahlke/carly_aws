@@ -9,27 +9,29 @@ import (
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 		// NETWORK - VPC, Subnets, Security Groups
-		networkData, err := internal.CreateNetwork(ctx, internal.NetworkConfig{})
+		_, err := internal.CreateNetwork(ctx, internal.NetworkConfig{})
 		if err != nil {
 			return err
 		}
 
 		// STORAGE - DynamoDB DB, Document DB
-		storageData, err := internal.CreateStorage(ctx, internal.StorageConfig{})
+		_, err = internal.CreateStorage(ctx, internal.StorageConfig{})
 		if err != nil {
 			return err
 		}
 
 		// CRAWLER-ENGINE-LMB
-		_, err = internal.CreateCrawlerEngineLmb(ctx, internal.CrawlerEngineLmbConfig{
-			ArticleBucket:    *storageData.S3ArticleDomBucket,
-			LambdaCodeBucket: *storageData.S3LambdaCodeBucket,
-			ArticleTable:     *storageData.DdbArticleTable,
-			NetworkData:      networkData,
-		})
-		if err != nil {
-			return err
-		}
+		/*
+			_, err = internal.CreateCrawlerEngineLmb(ctx, internal.CrawlerEngineLmbConfig{
+				ArticleBucket:    *storageData.S3ArticleDomBucket,
+				LambdaCodeBucket: *storageData.S3LambdaCodeBucket,
+				ArticleTable:     *storageData.DdbArticleTable,
+				NetworkData:      networkData,
+			})
+			if err != nil {
+				return err
+			}
+		*/
 
 		//// Crawler - EC2
 		//_, err = handler.CreateCrawler(ctx, handler.CrawlerConfig{
