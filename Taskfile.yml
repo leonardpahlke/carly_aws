@@ -17,11 +17,6 @@ tasks:
     cmds:
       - task: go-get-all-dependecies
       - echo "Dependecies installed"
-      - task: build-spider-downloader
-      - task: build-spider-ml
-      - task: build-spider-parser
-      - task: build-spider-translator
-      - echo Spider code successfully compiled
 
   build-spider-downloader:
     vars:

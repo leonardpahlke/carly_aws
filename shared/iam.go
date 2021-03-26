@@ -1,7 +1,9 @@
-package pkg
+package shared
 
 import (
 	"encoding/json"
+
+	pkg "github.com/leonardpahlke/carly_pkg"
 
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/iam"
 	"github.com/pulumi/pulumi/sdk/v2/go/pulumi"
@@ -102,7 +104,7 @@ func (ps ownIamPolicyStatement) addPrincipal(servicePrincipal pulumi.String) own
 		"Service": servicePrincipal,
 	})
 	if err != nil {
-		LogError("OwnIamPolicyStatement.addPrincipal", "could not marshal policy principal statement object", err)
+		pkg.LogError("OwnIamPolicyStatement.addPrincipal", "could not marshal policy principal statement object", err)
 	}
 	ps.policy["Principal"] = pulumi.String(string(tmpJSON))
 	return ps
@@ -117,7 +119,7 @@ func (ps ownIamPolicyStatement) getPolicyStatement() pulumi.String {
 		"Statement": statement,
 	})
 	if err != nil {
-		LogError("OwnIamPolicyStatement.getPolicyStatement", "could not marshal policy statement object", err)
+		pkg.LogError("OwnIamPolicyStatement.getPolicyStatement", "could not marshal policy statement object", err)
 	}
 	return pulumi.String(string(tmpJSON))
 }
@@ -187,7 +189,7 @@ func CreateRole(ctx *pulumi.Context, roleName string, policyAssumeStringJson pul
 			Tags:             GetTags(roleName),
 		})
 	if err != nil {
-		LogError("pkg.CreateRole", "could not create role", err)
+		pkg.LogError("pkg.CreateRole", "could not create role", err)
 	}
 	return role
 }

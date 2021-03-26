@@ -2,11 +2,12 @@ package internal
 
 import (
 	"bytes"
-	"carly_aws/pkg"
+	"carly_aws/shared"
 	"fmt"
+	"strings"
+
 	"github.com/pulumi/pulumi-aws/sdk/v3/go/aws/sfn"
 	"github.com/pulumi/pulumi/sdk/v2/go/pulumi"
-	"strings"
 )
 
 const methodDelete = "delete"
@@ -19,7 +20,7 @@ func CreateSpiderStateMachine(ctx *pulumi.Context, config SpiderStateMachineConf
 		Name:       pulumi.Sprintf("SpiderStateMachine"),
 		RoleArn:    pulumi.String(""), // todo step function role arn
 		Definition: pulumi.String(fmt.Sprintf("%v%v%v%v%v%v%v%v%v%v%v%v%v", "{\n", "  \"Comment\": \"A Hello World example of the Amazon States Language using an AWS Lambda Function\",\n", "  \"StartAt\": \"HelloWorld\",\n", "  \"States\": {\n", "    \"HelloWorld\": {\n", "      \"Type\": \"Task\",\n", "      \"Resource\": \"", "aws_lambda_function.Lambda.Arn", "\",\n", "      \"End\": true\n", "    }\n", "  }\n", "}\n")),
-		Tags:       pkg.GetTags("SpiderStateMachine"),
+		Tags:       shared.GetTags("SpiderStateMachine"),
 	})
 	if err != nil {
 		return SpiderStateMachineData{}, err

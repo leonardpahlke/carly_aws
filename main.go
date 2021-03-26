@@ -14,36 +14,18 @@ func main() {
 			return err
 		}
 
-		// PERSISTENT - DynamoDB DB, Document DB
-		persistentData, err := internal.CreatePersistent(ctx, internal.PersistentConfig{})
+		// STORAGE - DynamoDB DB, Document DB
+		storageData, err := internal.CreateStorage(ctx, internal.StorageConfig{})
 		if err != nil {
 			return err
 		}
 
-		//// API - Gateway, Lambda Handler
-		//_, err = handler.CreateAPI(ctx, handler.ApiConfig{})
-		//if err != nil {
-		//	return err
-		//}
-
-		//// STATIC WEBSITE - S3
-		//_, err = handler.CreateStaticWebsite(ctx, handler.StaticWebsiteConfig{})
-		//if err != nil {
-		//	return err
-		//}
-
-		//// CI CD Website - CodePipeline
-		//_, err = handler.CreateCiCdWebsite(ctx, handler.CiCdWebsiteConfig{})
-		//if err != nil {
-		//	return err
-		//}
-
-		// Spiders - Lambdas
-		_, err = internal.CreateSpiders(ctx, internal.SpidersConfig{
-			ArticleBucket:          *persistentData.S3ArticleDomBucket,
-			ArticleBucketAnalytics: *persistentData.S3ArticleAnalyticsBucket,
-			ArticleTable:           *persistentData.DdbArticleTable,
-			NetworkData:            networkData,
+		// CRAWLER-ENGINE-LMB
+		_, err = internal.CreateCrawlerEngineLmb(ctx, internal.CrawlerEngineLmbConfig{
+			ArticleBucket:    *storageData.S3ArticleDomBucket,
+			LambdaCodeBucket: *storageData.S3LambdaCodeBucket,
+			ArticleTable:     *storageData.DdbArticleTable,
+			NetworkData:      networkData,
 		})
 		if err != nil {
 			return err
